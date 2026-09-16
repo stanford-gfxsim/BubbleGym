@@ -1,0 +1,38 @@
+# Tested on Python 3.11. The lower bounds below are the versions the shipped
+# numbers were produced with; anything older is untested.
+
+# Core numerics / data
+numpy>=2.4.3
+scipy>=1.17.1
+pandas>=3.0.2
+scikit-learn>=1.8.0
+joblib
+tqdm
+
+# Neural network training and evaluation
+torch>=2.11.0
+tensorboard
+
+# BEM ground truth
+bempp-cl>=0.4.2
+
+# Mesh I/O and geometry
+meshio
+libigl          # provides `igl`; required for the W_vertex (Willmore) column.
+                # Lazily imported in shape_feature/nonspherical_features.py,
+                # which returns NaN if it is missing. Only needed to regenerate
+                # dataset features -- not to use the shipped dataset CSV.
+
+# Plotting and visualization
+matplotlib
+plotly
+pyvista
+pillow          # PIL, used by visualization/render_dataset_thumbnails.py
+
+# Optional / per-script extras (each is imported lazily and the calling script
+# degrades gracefully or errors with a clear message if absent):
+psutil          # bem/eval_galerkin_full_dataset.py -- memory reporting
+numba           # freq_model/regression/measure_baseline_inference_time.py -- JIT baseline
+
+# Testing
+pytest

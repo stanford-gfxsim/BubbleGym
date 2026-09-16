@@ -1,0 +1,113 @@
+/* Shared styling for the per-figure sub-pages. Tokens and type match
+   index.html, so a reader moving between them sees one site. Light is the
+   base; the two blocks below re-declare only the tokens, so a colour is never
+   defined solely inside a media query. */
+:root{
+  --ink:#1a1a1a; --muted:#5b5b5b; --rule:#e2e2e2;
+  --bg:#ffffff; --panel:#fafafa; --link:#1a5fb4; --accent:#0b6b6b;
+  --figure-bg:#ffffff;
+  --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --sans: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono: ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#e8e8e8; --muted:#a6a6a6; --rule:#333333; --bg:#151515;
+    --panel:#1d1d1d; --link:#7fb2f0; --accent:#67c9c9; --figure-bg:#151515;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#e8e8e8; --muted:#a6a6a6; --rule:#333333; --bg:#151515;
+  --panel:#1d1d1d; --link:#7fb2f0; --accent:#67c9c9; --figure-bg:#151515;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{overflow-x:hidden}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans); font-size:17px; line-height:1.6;
+}
+a{color:var(--link); text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:900px; margin:0 auto; padding:0 24px}
+
+nav{border-bottom:1px solid var(--rule); background:var(--bg)}
+nav .wrap{display:flex; align-items:center; gap:18px; height:56px}
+nav .brand{font-family:var(--serif); font-size:20px; font-weight:600;
+           color:var(--ink); margin-right:auto}
+nav a.item{font-size:15px; color:var(--muted)}
+nav a.item:hover{color:var(--ink); text-decoration:none}
+#theme-toggle{
+  margin-left:6px; cursor:pointer; font:inherit; font-size:15px; line-height:1;
+  background:var(--panel); color:var(--ink);
+  border:1px solid var(--rule); border-radius:999px; padding:7px 13px;
+}
+#theme-toggle:hover{border-color:var(--accent); color:var(--accent)}
+
+header{padding:40px 0 4px}
+.eyebrow{font-size:14px; letter-spacing:.06em; text-transform:uppercase;
+         color:var(--accent); margin-bottom:8px}
+h1{font-family:var(--serif); font-weight:600; font-size:34px;
+   line-height:1.2; margin:0 0 12px}
+.caption{font-size:16.5px; color:var(--muted); margin:0 0 4px}
+
+section{padding:30px 0; border-top:1px solid var(--rule)}
+section:first-of-type{border-top:none}
+h2{font-family:var(--serif); font-weight:600; font-size:22px; margin:0 0 14px}
+p{margin:0 0 14px}
+
+figure{margin:0 0 26px}
+figure img{width:100%; height:auto; display:block; border:1px solid var(--rule);
+           border-radius:6px; background:var(--figure-bg)}
+/* A transparent plot gets the panel colour behind it rather than white. */
+figure img.plot{background:var(--panel)}
+figcaption{font-size:14.5px; color:var(--muted); margin-top:9px}
+
+.grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:18px}
+@media (max-width:700px){ .grid2{grid-template-columns:1fr} }
+
+/* A sequence read left to right: five frames of one deforming bubble, then the
+   pitch it produces. The row keeps five columns even on a phone, because the
+   point is the progression and a wrapped row stops reading as one. */
+.frames{display:grid; grid-template-columns:repeat(5,1fr); gap:8px;
+        margin:0 0 10px}
+.frames img{width:100%; height:auto; display:block; border:1px solid var(--rule);
+            border-radius:5px; background:var(--figure-bg)}
+.seq{margin:0 0 34px}
+.seq h3{font-size:16.5px; margin:0 0 10px; font-weight:600}
+.seq .pitch{width:100%; height:auto; display:block; border:1px solid var(--rule);
+            border-radius:6px; background:var(--panel)}
+@media (max-width:700px){ .frames{gap:5px} }
+
+/* Somewhere for the scene's supplemental video to land. Holds a 16:9 box so
+   the page does not reflow when the real file replaces it. */
+.videoslot{
+  aspect-ratio:16/9; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center; gap:6px;
+  padding:20px; color:var(--muted);
+  background:var(--panel); border:1px dashed var(--rule); border-radius:8px;
+}
+.videoslot .vs-ico{font-size:28px; line-height:1; color:var(--accent)}
+.videoslot .vs-hint{font-size:13.5px; max-width:44ch}
+.scenevideo{width:100%; height:auto; display:block; border-radius:8px;
+            border:1px solid var(--rule); background:#000}
+
+table{border-collapse:collapse; width:100%; font-size:15px; margin-bottom:16px}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--rule);
+      vertical-align:top}
+th{font-weight:600}
+code{font-family:var(--mono); font-size:14px; background:var(--panel);
+     padding:1px 5px; border-radius:4px; overflow-wrap:anywhere}
+
+footer{border-top:1px solid var(--rule); padding:24px 0 56px;
+       font-size:14.5px; color:var(--muted)}
+
+@media (max-width:700px){
+  body{font-size:16px}
+  h1{font-size:27px}
+  section{padding:24px 0}
+  table{font-size:14px}
+  th,td{padding:7px 8px}
+}
+@media (max-width:460px){ .wrap{padding:0 17px} }

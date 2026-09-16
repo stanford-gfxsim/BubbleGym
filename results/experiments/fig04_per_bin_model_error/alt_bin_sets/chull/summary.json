@@ -1,0 +1,97 @@
+{
+  "bin_by": "chull",
+  "axis_label": "Convex-hull deficit  $1-\\eta_V$",
+  "scalar": "chull_deficit",
+  "features": 8,
+  "pool": {
+    "what": "test split of the 8-feature retrains",
+    "n": 1485,
+    "disjoint_from_fig04_meshes": true,
+    "disjoint_from_train_and_val": true
+  },
+  "bins": 10,
+  "per_bin": 10,
+  "n_selected": 100,
+  "bin_edges": [
+    1.9073486328125e-05,
+    0.00028586387634277344,
+    0.0008126020431518555,
+    0.0014830470085144044,
+    0.002767622470855713,
+    0.00657576322555542,
+    0.01732525825500491,
+    0.051463341712951714,
+    0.1666357517242433,
+    0.39593955278396625,
+    0.8295395821332932
+  ],
+  "selection": "farthest-point sampling in the standardized 8-feature space, seeded from the bin's median-scalar bubble (deterministic)",
+  "bin_thumbnails": [
+    {
+      "bin": 0,
+      "mesh_id_10k": "VOF/bubble.0283.10.obj",
+      "bin_scalar": 0.00016611814498901367
+    },
+    {
+      "bin": 1,
+      "mesh_id_10k": "VOF/bubble.0141.63.obj",
+      "bin_scalar": 0.00043886899948120117
+    },
+    {
+      "bin": 2,
+      "mesh_id_10k": "VOF/bubble.0237.1.obj",
+      "bin_scalar": 0.0012063384056091309
+    },
+    {
+      "bin": 3,
+      "mesh_id_10k": "LBM/bubble.0089.82.obj",
+      "bin_scalar": 0.002263009548187256
+    },
+    {
+      "bin": 4,
+      "mesh_id_10k": "VOF/bubble.0182.13.obj",
+      "bin_scalar": 0.003916144371032715
+    },
+    {
+      "bin": 5,
+      "mesh_id_10k": "LBM/bubble.0078.195.obj",
+      "bin_scalar": 0.013072848320007324
+    },
+    {
+      "bin": 6,
+      "mesh_id_10k": "VOF/bubble.0239.19.obj",
+      "bin_scalar": 0.030895650386810303
+    },
+    {
+      "bin": 7,
+      "mesh_id_10k": "LBM/bubble.0057.50.obj",
+      "bin_scalar": 0.0954853892326355
+    },
+    {
+      "bin": 8,
+      "mesh_id_10k": "VOF/bubble.0216.65.obj",
+      "bin_scalar": 0.27749937772750854
+    },
+    {
+      "bin": 9,
+      "mesh_id_10k": "VOF/bubble.0234.19.obj",
+      "bin_scalar": 0.5505169928073883
+    }
+  ],
+  "overall_mape_pct": {
+    "minnaert": 5.133427543125572,
+    "strasberg": 1.698231514344939,
+    "residual": 0.16800611791770448,
+    "direct": 0.1555669768591419
+  },
+  "max_ape_pct": {
+    "minnaert": 24.9702740300792,
+    "strasberg": 17.942937858697466,
+    "residual": 3.3931836480991184,
+    "direct": 3.263827192220066
+  },
+  "source_counts": {
+    "VOF": 63,
+    "LBM": 37
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "protocol": "StandardScaler.transform -> predict (sklearn / torch incl. tensor conversion, device transfer, cuda synchronize, inverse target scaling); one batched call, warm-up 20, mean of 200",
+  "n_test": 1500,
+  "table2": {
+    "linear": {
+      "test_mape": 0.2255439029506709,
+      "batch_ms": 0.10792399989441037,
+      "us_per_bubble": 0.07194933326294024
+    },
+    "poly2": {
+      "test_mape": 0.07262932764962639,
+      "batch_ms": 0.4130709989112802,
+      "us_per_bubble": 0.2753806659408535
+    },
+    "poly3": {
+      "test_mape": 0.05814740095989613,
+      "batch_ms": 1.056002001860179,
+      "us_per_bubble": 0.7040013345734527
+    },
+    "rbf": {
+      "test_mape": 0.06443085001892165,
+      "batch_ms": 74.80172150098952,
+      "us_per_bubble": 49.86781433399301
+    },
+    "mlp_cpu": {
+      "test_mape": 0.08858014820149564,
+      "batch_ms": 0.5832115016528405,
+      "us_per_bubble": 0.38880766776856035
+    },
+    "mlp_cuda": {
+      "test_mape": 0.08858011647387191,
+      "batch_ms": 0.5571675003739074,
+      "us_per_bubble": 0.3714450002492716
+    }
+  },
+  "table1": {
+    "batch512": {
+      "n": 512,
+      "batch_ms": 0.5164589977357537,
+      "us_per_bubble": 1.0087089799526439
+    },
+    "ellipsoid_n180": {
+      "n": 180,
+      "batch_ms": 0.5086249992018566,
+      "us_per_bubble": 2.8256944400103143
+    },
+    "curlnoise_n180": {
+      "n": 180,
+      "batch_ms": 0.5210609978530556,
+      "us_per_bubble": 2.8947833214058645
+    },
+    "enright_n120": {
+      "n": 120,
+      "batch_ms": 0.49359100055880845,
+      "us_per_bubble": 4.113258337990071
+    },
+    "fruits_n73308": {
+      "n": 73308,
+      "batch_ms": 3.075763001688756,
+      "us_per_bubble": 0.04195671688886283
+    },
+    "exhale08_n200177": {
+      "n": 200177,
+      "batch_ms": 9.120237994939089,
+      "us_per_bubble": 0.04556086860597915
+    }
+  }
+}

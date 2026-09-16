@@ -1,0 +1,78 @@
+{
+  "bin_edges_selected": [
+    0.0019973576351399736,
+    0.013690553276060492,
+    0.019253068177619313,
+    0.02979916089214819,
+    0.04176333886441781,
+    0.06113646722099225,
+    0.09077222642513151,
+    0.13678969501744345,
+    0.2028391731223497,
+    0.2929345060663594,
+    0.5986920913080976
+  ],
+  "n_bins": 10,
+  "minnaert_overall_mape_in_selected_set": 4.448487093353489,
+  "strasberg_overall_mape_in_selected_set": 1.8453120043774018,
+  "models": [
+    {
+      "key": "strasberg",
+      "label": "Strasberg + net residual",
+      "out_dir": "<authoring-repo>/results/stratified_eval_chull_residual",
+      "model_path": "python/freq_model/output_nonsphericity_chull_6k_lbm_3k/bubble_freq_net_nonsphericity_chull_best.pt",
+      "feature_cols": [
+        "non_sph_va",
+        "non_sph_vm",
+        "non_sph_w",
+        "eta_V",
+        "eta_A",
+        "eta_M"
+      ],
+      "overall_mape": 0.3111420185119598,
+      "overall_rmse_log": 0.006473705166809415,
+      "overall_max_ape": 4.6809725095992665,
+      "n_total": 100
+    },
+    {
+      "key": "direct",
+      "label": "Direct log f",
+      "out_dir": "<authoring-repo>/results/stratified_eval_chull_direct",
+      "model_path": "python/freq_model/output_nonsphericity_chull_direct_6k_lbm_3k/bubble_freq_net_nonsphericity_chull_direct_best.pt",
+      "feature_cols": [
+        "non_sph_va",
+        "non_sph_vm",
+        "non_sph_w",
+        "eta_V",
+        "eta_A",
+        "eta_M"
+      ],
+      "overall_mape": 0.14437657226058767,
+      "overall_rmse_log": 0.002528447913690129,
+      "overall_max_ape": 1.409137171746977,
+      "n_total": 100
+    },
+    {
+      "key": "minnaert",
+      "label": "Minnaert + net residual",
+      "out_dir": "<authoring-repo>/results/stratified_eval_chull_minnaert",
+      "model_path": "python/freq_model/output_nonsphericity_chull_minnaert_6k_lbm_3k/bubble_freq_net_nonsphericity_chull_minnaert_best.pt",
+      "feature_cols": [
+        "non_sph_va",
+        "non_sph_vm",
+        "non_sph_w",
+        "eta_V",
+        "eta_A",
+        "eta_M"
+      ],
+      "overall_mape": 0.1443767190376658,
+      "overall_rmse_log": 0.0025284038639007116,
+      "overall_max_ape": 1.4091081709047304,
+      "n_total": 100
+    }
+  ],
+  "sources": [
+    "lbm_exhale_3k",
+    "tim2016_6k"
+  ]
+}

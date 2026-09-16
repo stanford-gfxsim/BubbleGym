@@ -1,0 +1,26 @@
+{
+  "gpu": "NVIDIA GeForce RTX 5090",
+  "protocol": "transfer + forward + readback, synchronize, mean of 50 after 5 warm-up",
+  "results": {
+    "fruits_gpu": {
+      "n": 6511,
+      "batch_ms": 0.4511659999843687,
+      "ms_per_bubble": 6.929288895474868e-05
+    },
+    "exhale_gpu": {
+      "n": 32464,
+      "batch_ms": 0.4741780005861074,
+      "ms_per_bubble": 1.4606271580400055e-05
+    },
+    "fruits_cpu": {
+      "n": 6511,
+      "batch_ms": 0.5992619995959103,
+      "ms_per_bubble": 9.203839649760564e-05
+    },
+    "exhale_cpu": {
+      "n": 32464,
+      "batch_ms": 1.7821379995439202,
+      "ms_per_bubble": 5.489582305150074e-05
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "best_epoch": 124,
+  "test_metrics": {
+    "rmse_log": 0.002420017034590759,
+    "mape": 0.09833141820842614,
+    "max_ape": 3.776996723258526
+  },
+  "holdout_metrics": {
+    "count": 100,
+    "mape": 0.11427549269648754,
+    "max_ape": 1.1486613068571212,
+    "rmse_log": 0.00222965330061156
+  },
+  "history_len": 164,
+  "feature_cols": [
+    "i11_over_i00",
+    "i22_over_i00",
+    "non_sph_va",
+    "non_sph_vm",
+    "non_sph_w",
+    "eta_V",
+    "eta_A",
+    "eta_M"
+  ],
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "baseline_kind": "strasberg_log_residual",
+  "baseline_col": "f_strasberg",
+  "n_train": 6930,
+  "n_val": 1485,
+  "n_test": 1485,
+  "n_holdout": 100
+}

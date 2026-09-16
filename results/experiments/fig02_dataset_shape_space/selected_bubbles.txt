@@ -1,0 +1,19 @@
+# The six bubbles drawn in Fig. 2's left panel, in the order they appear
+# (top row left-to-right, then bottom row).
+#
+# Recovered 2026-09-16 from the authoring repository's
+# results/dataset_distribution_3d_png/selected_bub.txt, which listed them as
+# absolute paths to per-bubble renders. Rewritten here as mesh ids in the
+# shipped benchmark; all six are VOF bubbles present in
+# dataset/bubble_gym/dataset_bubblegym_10k.csv, and each has a render in
+# dataset/bubble_gym/bubble_mesh_thumbnails_100x100/VOF/.
+#
+# This is the selection list plot_selected_bubbles_features.py needs.
+#
+# mesh_id                  row in the 10k CSV   frequency (unit volume, Hz)
+VOF/bubble.0023.25.obj     9                    5.323508
+VOF/bubble.0360.37.obj     995                  5.628852
+VOF/bubble.0288.53.obj     5197                 5.591713
+VOF/bubble.0188.34.obj     1898                 5.764707
+VOF/bubble.0189.38.obj     459                  5.832723
+VOF/bubble.0169.11.obj     1248                 5.742776

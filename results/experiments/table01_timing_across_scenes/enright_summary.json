@@ -1,0 +1,28 @@
+{
+  "mode": "csv_all",
+  "hardware": {
+    "cpu": "Intel(R) Core(TM) i9-14900K (32 logical cores)",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "nn8_infer_devices": "cpu+cuda"
+  },
+  "scenes": [
+    {
+      "scene": "dataset/bubble_theater/enright_test",
+      "csv_path": "results/experiments/table01_timing_across_scenes/nn8_vs_bem_enright_test.csv",
+      "n_frames": 119,
+      "avg_feat_s": 0.05080703613905925,
+      "avg_infer_cpu_s": 0.00020843211762967104,
+      "avg_infer_gpu_s": 0.00034700531934137545,
+      "avg_nn_total_cpu_s": 0.05101546825668892,
+      "avg_nn_total_gpu_s": 0.05115404145840063,
+      "avg_bem_assemble_s": 26.149641813445708,
+      "avg_bem_solve_s": 1.3487574033617207,
+      "avg_bem_total_s": 27.498399216807428,
+      "hardware": {
+        "cpu": "Intel(R) Core(TM) i9-14900K (32 logical cores)",
+        "gpu": "NVIDIA GeForce RTX 5090",
+        "nn8_infer_devices": "cpu+cuda"
+      }
+    }
+  ]
+}

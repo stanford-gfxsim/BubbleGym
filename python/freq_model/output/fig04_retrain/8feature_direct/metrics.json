@@ -1,0 +1,32 @@
+{
+  "best_epoch": 147,
+  "test_metrics": {
+    "rmse_log": 0.0019165586282138347,
+    "mape": 0.08260425940046263,
+    "max_ape": 3.2638232457964316
+  },
+  "holdout_metrics": {
+    "count": 100,
+    "mape": 0.11215579034122428,
+    "max_ape": 1.523019099666924,
+    "rmse_log": 0.0024728948311726344
+  },
+  "history_len": 187,
+  "feature_cols": [
+    "i11_over_i00",
+    "i22_over_i00",
+    "non_sph_va",
+    "non_sph_vm",
+    "non_sph_w",
+    "eta_V",
+    "eta_A",
+    "eta_M"
+  ],
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "baseline_kind": "none_log_direct",
+  "baseline_col": "",
+  "n_train": 6930,
+  "n_val": 1485,
+  "n_test": 1485,
+  "n_holdout": 100
+}

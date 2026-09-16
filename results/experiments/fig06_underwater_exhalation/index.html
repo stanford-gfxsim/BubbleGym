@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Underwater exhalation — BubbleGym Fig. 6</title>
+<meta name="description" content="Figure 6 of BubbleGym: underwater character exhalation produces a cascading plume of nonspherical bubbles.">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('bubblegym-theme');
+      if (saved === 'dark' || saved === 'light') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    } catch (e) { /* private mode: fall through to the system preference */ }
+  })();
+</script>
+<link rel="stylesheet" href="../page.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">BubbleGym</span>
+    <a class="item" href="../../../index.html">&#8592; Project page</a>
+    <a class="item" href="../README.md">All figures</a>
+    <button id="theme-toggle" type="button" aria-label="Switch between light and dark mode">
+      <span id="theme-icon">&#9790;</span> <span id="theme-label">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Figure 6</div>
+    <h1>Underwater exhalation</h1>
+  </header>
+
+  <section>
+    <figure>
+      <img src="exhale_final.jpg"
+           alt="An underwater character exhaling a cascading plume of bubbles">
+    </figure>
+  </section>
+
+  <section>
+    <h2>Figure 6 caption</h2>
+    <p>
+      <strong>Underwater character exhalation</strong> produces a cascading
+      plume of nonspherical bubbles, yielding a classic underwater sound. See
+      the supplemental video for sound comparisons across bubble-frequency
+      models.
+    </p>
+  </section>
+
+  <section>
+    <h2>From Section 6, &ldquo;Underwater Exhalation&rdquo;</h2>
+    <p>
+      A character exhales air underwater at intervals, producing large rising
+      bubbles that deform substantially under buoyancy before reaching the free
+      surface. These bubbles vibrate at low frequencies and undergo visible
+      shape and topology changes mid-flight, requiring per-frame frequency
+      updates as the shape evolves. BubbleGym tracks shape evolution and
+      synthesizes characteristic deep, resonant underwater sound. An additional
+      single bubble release example is included in
+      <a href="../fig07_single_rising_bubble/index.html">Figure 7</a>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Video</h2>
+    <div class="videoslot">
+      <span class="vs-ico">&#9654;</span>
+      <span>Supplemental video &mdash; not yet added</span>
+      <span class="vs-hint">Drop the file in this folder and swap this block for the
+        commented-out &lt;video&gt; element below.</span>
+    </div>
+    <!-- Ready for the file; set the name and delete the .videoslot block above.
+    <video class="scenevideo" controls preload="metadata" poster="POSTER.jpg">
+      <source src="VIDEO.mp4" type="video/mp4">
+    </video>
+    -->
+  </section>
+
+  <section>
+    <h2>Files</h2>
+    <table>
+      <tr><th>What</th><th>Where</th></tr>
+      <tr><td>The scene</td>
+          <td><code>dataset/exhalation/</code> &mdash; BEM, learned surrogate and
+              Minnaert, each a separate <code>trackedBubInfo</code> sharing one
+              bubble graph. Tracked with git-LFS; run
+              <code>git lfs install</code> before cloning</td></tr>
+      <tr><td>Per-mesh BEM sweep</td>
+          <td><code>results/experiments/table01_timing_across_scenes/</code>,
+              the source of this scene's row in Table 1</td></tr>
+      <tr><td>End-to-end timing</td>
+          <td>Figure 8, <code>results/experiments/fig08_end_to_end_timing/</code></td></tr>
+    </table>
+  </section>
+
+</div>
+
+<footer class="wrap">
+  <a href="../README.md">Every figure and table, with its data</a> &middot;
+  <a href="../../../index.html">BubbleGym project page</a>
+</footer>
+
+<script src="../page.js"></script>
+
+</body>
+</html>

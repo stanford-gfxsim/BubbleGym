@@ -1,0 +1,45 @@
+{
+  "variant_name": "nonsph",
+  "best_epoch": 176,
+  "test_metrics": {
+    "rmse_log": 0.007422180254457667,
+    "mape": 0.2878327044488317,
+    "max_ape": 8.51367466294748
+  },
+  "test_metrics_per_source": {
+    "LBM": {
+      "count": 616,
+      "rmse_log": 0.009024641104017218,
+      "mape": 0.4335495221936915,
+      "max_ape": 6.769525589876229
+    },
+    "VOF": {
+      "count": 884,
+      "rmse_log": 0.006059989043174445,
+      "mape": 0.18629247850905667,
+      "max_ape": 8.513674662948736
+    }
+  },
+  "history_len": 216,
+  "feature_cols": [
+    "non_sph_va",
+    "non_sph_vm",
+    "non_sph_w"
+  ],
+  "hidden_dim": 64,
+  "hidden_dim2": 32,
+  "n_params": 6849,
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "baseline_kind": "none_log_direct",
+  "inference_timing": {
+    "device": "cuda",
+    "batch_size": 100,
+    "warmup": 30,
+    "repeats": 150,
+    "forward_mean_ms": 0.2515611731509368,
+    "forward_std_ms": 0.09503812659364733,
+    "forward_median_ms": 0.22470399737358093,
+    "per_sample_mean_us": 2.515611731509368,
+    "throughput_samples_per_s": 397517.6246296163
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "best_epoch": 190,
+  "test_metrics": {
+    "rmse_log": 0.0023013028298481397,
+    "mape": 0.08858017253930929,
+    "max_ape": 3.7133850522145293
+  },
+  "test_metrics_per_source": {
+    "LBM": {
+      "count": 616,
+      "rmse_log": 0.0030737358921709094,
+      "mape": 0.13585707892462615,
+      "max_ape": 3.713385052215102
+    },
+    "VOF": {
+      "count": 884,
+      "rmse_log": 0.0015501113059406522,
+      "mape": 0.055636083926941984,
+      "max_ape": 3.020264284378252
+    }
+  },
+  "history_len": 230,
+  "feature_cols": [
+    "i11_over_i00",
+    "i22_over_i00",
+    "non_sph_va",
+    "non_sph_vm",
+    "non_sph_w",
+    "eta_V",
+    "eta_A",
+    "eta_M"
+  ],
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "baseline_kind": "none_log_direct",
+  "baseline_col": "",
+  "willmore_source_col": "W_vertex",
+  "worst_cases_dir": "results/worst_cases_8feature_direct",
+  "worst_cases_count": 10
+}

@@ -1,0 +1,44 @@
+{
+  "variant_name": "inertia",
+  "best_epoch": 114,
+  "test_metrics": {
+    "rmse_log": 0.026832522864154804,
+    "mape": 1.1176104950437735,
+    "max_ape": 21.38000115884589
+  },
+  "test_metrics_per_source": {
+    "LBM": {
+      "count": 616,
+      "rmse_log": 0.03967418853670608,
+      "mape": 2.001969492060267,
+      "max_ape": 21.38000115884903
+    },
+    "VOF": {
+      "count": 884,
+      "rmse_log": 0.011173610610313639,
+      "mape": 0.50136033422717,
+      "max_ape": 8.046416713799072
+    }
+  },
+  "history_len": 154,
+  "feature_cols": [
+    "i11_over_i00",
+    "i22_over_i00"
+  ],
+  "hidden_dim": 64,
+  "hidden_dim2": 32,
+  "n_params": 6785,
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "baseline_kind": "none_log_direct",
+  "inference_timing": {
+    "device": "cuda",
+    "batch_size": 100,
+    "warmup": 30,
+    "repeats": 150,
+    "forward_mean_ms": 0.24719552059968314,
+    "forward_std_ms": 0.07078669260238564,
+    "forward_median_ms": 0.2285120040178299,
+    "per_sample_mean_us": 2.4719552059968315,
+    "throughput_samples_per_s": 404538.0747895647
+  }
+}

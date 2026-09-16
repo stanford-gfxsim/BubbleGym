@@ -1,0 +1,22 @@
+{
+  "artifacts": "python/freq_model/output/output_8feature_direct_bubblegym_10k",
+  "n_meshes": 3078,
+  "feature_wall_s": 71.72855540001183,
+  "feat_mean_s": 0.01750518525061043,
+  "feat_median_s": 0.0037121000059414655,
+  "feat_total_s": 53.88096020137891,
+  "mesh_load_mean_s": 0.00569728248812185,
+  "mesh_load_total_s": 17.536235498439055,
+  "bub1": {
+    "n": 282,
+    "feat_mean_s": 0.07418448830026297,
+    "feat_total_s": 20.92002570067416,
+    "verts_median": 5805.0
+  },
+  "cuda_batch512_s_per_mesh": 6.629921881540213e-07,
+  "cuda_wholescene_s_total": 0.0003700000001117587,
+  "cuda_wholescene_s_per_mesh": 1.2020792726177994e-07,
+  "cpu_batch512_s_per_mesh": 6.91597656441445e-07,
+  "cpu_wholescene_s_total": 0.0003470199997536838,
+  "cpu_wholescene_s_per_mesh": 1.1274204020587519e-07
+}

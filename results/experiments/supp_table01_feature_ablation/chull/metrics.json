@@ -1,0 +1,45 @@
+{
+  "variant_name": "chull",
+  "best_epoch": 140,
+  "test_metrics": {
+    "rmse_log": 0.010525344796007748,
+    "mape": 0.6932920153359609,
+    "max_ape": 7.290630083684229
+  },
+  "test_metrics_per_source": {
+    "LBM": {
+      "count": 616,
+      "rmse_log": 0.011080539606737203,
+      "mape": 0.8148983775316266,
+      "max_ape": 4.3628260809459
+    },
+    "VOF": {
+      "count": 884,
+      "rmse_log": 0.010120476538216629,
+      "mape": 0.6085527403219952,
+      "max_ape": 7.290630083685304
+    }
+  },
+  "history_len": 180,
+  "feature_cols": [
+    "eta_V",
+    "eta_A",
+    "eta_M"
+  ],
+  "hidden_dim": 64,
+  "hidden_dim2": 32,
+  "n_params": 6849,
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "baseline_kind": "none_log_direct",
+  "inference_timing": {
+    "device": "cuda",
+    "batch_size": 100,
+    "warmup": 30,
+    "repeats": 150,
+    "forward_mean_ms": 0.24120319997270903,
+    "forward_std_ms": 0.07103119070111938,
+    "forward_median_ms": 0.22224000096321106,
+    "per_sample_mean_us": 2.4120319997270903,
+    "throughput_samples_per_s": 414588.1978817633
+  }
+}

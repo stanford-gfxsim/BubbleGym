@@ -1,0 +1,47 @@
+{
+  "variant_name": "inertia_nonsph",
+  "best_epoch": 176,
+  "test_metrics": {
+    "rmse_log": 0.0042018098017298005,
+    "mape": 0.17661503563985184,
+    "max_ape": 5.046665853902217
+  },
+  "test_metrics_per_source": {
+    "LBM": {
+      "count": 616,
+      "rmse_log": 0.005930135563073062,
+      "mape": 0.278717644525999,
+      "max_ape": 5.046665853902978
+    },
+    "VOF": {
+      "count": 884,
+      "rmse_log": 0.0023351145030573914,
+      "mape": 0.10546661134819837,
+      "max_ape": 2.4147067644708216
+    }
+  },
+  "history_len": 216,
+  "feature_cols": [
+    "i11_over_i00",
+    "i22_over_i00",
+    "non_sph_va",
+    "non_sph_vm",
+    "non_sph_w"
+  ],
+  "hidden_dim": 64,
+  "hidden_dim2": 32,
+  "n_params": 6977,
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "baseline_kind": "none_log_direct",
+  "inference_timing": {
+    "device": "cuda",
+    "batch_size": 100,
+    "warmup": 30,
+    "repeats": 150,
+    "forward_mean_ms": 0.25140586619575817,
+    "forward_std_ms": 0.07685502904816649,
+    "forward_median_ms": 0.22814399749040604,
+    "per_sample_mean_us": 2.5140586619575815,
+    "throughput_samples_per_s": 397763.19269389927
+  }
+}

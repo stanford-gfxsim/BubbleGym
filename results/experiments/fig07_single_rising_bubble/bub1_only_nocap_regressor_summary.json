@@ -1,0 +1,34 @@
+{
+  "label": "bub1_only_nocap",
+  "n_rows": 160,
+  "n_features_ok": 160,
+  "n_bem_compared": 160,
+  "poly2_hparams": {
+    "degree": 2,
+    "ridge_alpha": 1e-06
+  },
+  "poly2_test_split_mape_pct": 0.06213424488665659,
+  "mape_vs_bem": {
+    "nn8_mlp_10k": {
+      "mape_pct": 1.1809689711303204,
+      "median_ape_pct": 1.295122485556817,
+      "p99_ape_pct": 2.1563304940783348,
+      "max_ape_pct": 3.5004257033515604,
+      "n": 160
+    },
+    "poly2_10k": {
+      "mape_pct": 2.4969425488913286,
+      "median_ape_pct": 1.557632130135552,
+      "p99_ape_pct": 20.34977043278658,
+      "max_ape_pct": 27.34698907209886,
+      "n": 160
+    }
+  },
+  "timing": {
+    "feature_extraction_total_s": 23.427854599999932,
+    "feature_extraction_workers": 4,
+    "poly2_batch_s": 0.0006127999999989697,
+    "poly2_batch_us_per_bubble": 3.8299999999935608,
+    "poly2_single_query_us": 217.04300000010335
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "variant_name": "h16_h8",
+  "dataset": "dataset/bubble_gym/dataset_bubblegym_10k.csv",
+  "output_dir": "results/experiments/supp_table02_width_ablation/h16_h8",
+  "batch_size": 64,
+  "epochs": 400,
+  "lr": 0.003,
+  "weight_decay": 0.0001,
+  "patience": 40,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "seed": 42,
+  "num_workers": 0,
+  "device": "cuda",
+  "baseline_kind": "none_log_direct",
+  "feature_cols": [
+    "i11_over_i00",
+    "i22_over_i00",
+    "non_sph_va",
+    "non_sph_vm",
+    "non_sph_w",
+    "eta_V",
+    "eta_A",
+    "eta_M"
+  ],
+  "hidden_dim": 16,
+  "hidden_dim2": 8,
+  "dropout": 0.1,
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "n_params": 641
+}

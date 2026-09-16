@@ -1,0 +1,608 @@
+{
+  "dataset": "<authoring-repo>/dataset/bubble_gym/dataset_6k_plus_lbm_3k.csv",
+  "eval_split": "test",
+  "eval_split_json": "<authoring-repo>/python/freq_model/output_nonsphericity_chull_6k_lbm_3k/split.json",
+  "n_total_clean": 1349,
+  "non_sphericity_metric": "phi",
+  "stratify_scalar_note": "Bins/hybrid use (1 - clip(Phi,0,1)); column non_sphericity in selected_rows matches that scalar.",
+  "bin_edges_full": [
+    0.0019468636832165043,
+    0.013619351757762766,
+    0.01925773603855314,
+    0.029844303385340436,
+    0.04147571492542613,
+    0.06152053865910834,
+    0.09008767994370036,
+    0.13460479935780512,
+    0.20280610624493242,
+    0.29392076991072597,
+    0.6149541429962897
+  ],
+  "bin_edges_selected": [
+    0.0019973576351399736,
+    0.013690553276060492,
+    0.019253068177619313,
+    0.02979916089214819,
+    0.04176333886441781,
+    0.06113646722099225,
+    0.09077222642513151,
+    0.13678969501744345,
+    0.2028391731223497,
+    0.2929345060663594,
+    0.5986920913080976
+  ],
+  "sampling": {
+    "bins": 10,
+    "per_bin_target": 10,
+    "thin_jnd_pct": 0.0,
+    "selected_unique": 100
+  },
+  "model": {
+    "kind": "nonsphericity_chull",
+    "model_path": "python/freq_model/output_nonsphericity_chull_6k_lbm_3k/bubble_freq_net_nonsphericity_chull_best.pt",
+    "feature_scaler": "python/freq_model/output_nonsphericity_chull_6k_lbm_3k/feature_scaler.joblib",
+    "target_scaler": "python/freq_model/output_nonsphericity_chull_6k_lbm_3k/target_log_scaler.joblib",
+    "predictor_ready": true,
+    "predictor_error": "",
+    "feature_cols": [
+      "non_sph_va",
+      "non_sph_vm",
+      "non_sph_w",
+      "eta_V",
+      "eta_A",
+      "eta_M"
+    ]
+  },
+  "bin_population_full": [
+    {
+      "bin": 0,
+      "bin_count_raw": 135,
+      "bin_count_thin": 135,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.0019468636832165043,
+      "non_sph_max": 0.013618882511710173
+    },
+    {
+      "bin": 1,
+      "bin_count_raw": 135,
+      "bin_count_thin": 135,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.013619469069275913,
+      "non_sph_max": 0.01923172071250001
+    },
+    {
+      "bin": 2,
+      "bin_count_raw": 135,
+      "bin_count_thin": 135,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.01927507958925523,
+      "non_sph_max": 0.029803078546167816
+    },
+    {
+      "bin": 3,
+      "bin_count_raw": 135,
+      "bin_count_thin": 135,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.029906140644099355,
+      "non_sph_max": 0.04144547385960362
+    },
+    {
+      "bin": 4,
+      "bin_count_raw": 134,
+      "bin_count_thin": 134,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.041596679188716124,
+      "non_sph_max": 0.06151874651651168
+    },
+    {
+      "bin": 5,
+      "bin_count_raw": 135,
+      "bin_count_thin": 135,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.06152053865910834,
+      "non_sph_max": 0.0900322679802723
+    },
+    {
+      "bin": 6,
+      "bin_count_raw": 135,
+      "bin_count_thin": 135,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.09010153293455736,
+      "non_sph_max": 0.13455227691383687
+    },
+    {
+      "bin": 7,
+      "bin_count_raw": 135,
+      "bin_count_thin": 135,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.13463981432045058,
+      "non_sph_max": 0.20260346611911195
+    },
+    {
+      "bin": 8,
+      "bin_count_raw": 135,
+      "bin_count_thin": 135,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.20311006643366303,
+      "non_sph_max": 0.2937384190147587
+    },
+    {
+      "bin": 9,
+      "bin_count_raw": 135,
+      "bin_count_thin": 135,
+      "bin_count_selected": 10,
+      "non_sph_min": 0.29465017349459477,
+      "non_sph_max": 0.6149541429962897
+    }
+  ],
+  "metrics_overall_selected": {
+    "minnaert": {
+      "count": 100,
+      "mape": 4.448487093353489,
+      "max_ape": 23.01341327805483,
+      "rmse_log": 0.07148128267459324
+    },
+    "strasberg": {
+      "count": 100,
+      "mape": 1.8453120043774018,
+      "max_ape": 15.392185071756906,
+      "rmse_log": 0.03689377682106501
+    },
+    "model": {
+      "count": 100,
+      "mape": 0.3111420185119598,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.006473705166809415
+    }
+  },
+  "metrics_per_bin_selected": {
+    "minnaert": [
+      {
+        "count": 10,
+        "mape": 0.8491700307544268,
+        "max_ape": 0.9838033037133382,
+        "rmse_log": 0.008561307690556843
+      },
+      {
+        "count": 10,
+        "mape": 0.9933152581853225,
+        "max_ape": 1.104391252882239,
+        "rmse_log": 0.01000301399677918
+      },
+      {
+        "count": 10,
+        "mape": 1.1621236101331405,
+        "max_ape": 1.3638385322840199,
+        "rmse_log": 0.011760087717706126
+      },
+      {
+        "count": 10,
+        "mape": 1.3980571071538481,
+        "max_ape": 1.633954641260648,
+        "rmse_log": 0.014148930982624852
+      },
+      {
+        "count": 10,
+        "mape": 1.8980576298095706,
+        "max_ape": 2.456348692941184,
+        "rmse_log": 0.019409841878811257
+      },
+      {
+        "count": 10,
+        "mape": 2.7034035017538507,
+        "max_ape": 3.4296774850746843,
+        "rmse_log": 0.027773283873169487
+      },
+      {
+        "count": 10,
+        "mape": 4.024503899230547,
+        "max_ape": 5.574667386314231,
+        "rmse_log": 0.041999055858604514
+      },
+      {
+        "count": 10,
+        "mape": 6.511614400492741,
+        "max_ape": 9.418278220437976,
+        "rmse_log": 0.06975111190600218
+      },
+      {
+        "count": 10,
+        "mape": 9.187801076729583,
+        "max_ape": 13.513534797488367,
+        "rmse_log": 0.09936906206563476
+      },
+      {
+        "count": 10,
+        "mape": 15.756824419291846,
+        "max_ape": 23.01341327805483,
+        "rmse_log": 0.18147298277919433
+      }
+    ],
+    "strasberg": [
+      {
+        "count": 10,
+        "mape": 0.05088817926114897,
+        "max_ape": 0.1230507812901052,
+        "rmse_log": 0.0006007261063533841
+      },
+      {
+        "count": 10,
+        "mape": 0.12019744619064303,
+        "max_ape": 0.21452180509563182,
+        "rmse_log": 0.0013456300825494933
+      },
+      {
+        "count": 10,
+        "mape": 0.20998874712553478,
+        "max_ape": 0.36911506210950973,
+        "rmse_log": 0.0023499177226090134
+      },
+      {
+        "count": 10,
+        "mape": 0.3167106932456209,
+        "max_ape": 0.5369498224231987,
+        "rmse_log": 0.00350437235761412
+      },
+      {
+        "count": 10,
+        "mape": 0.42630793219612445,
+        "max_ape": 1.2044836613503263,
+        "rmse_log": 0.005558333179176798
+      },
+      {
+        "count": 10,
+        "mape": 0.912253181270523,
+        "max_ape": 2.017736682309839,
+        "rmse_log": 0.01152365570009195
+      },
+      {
+        "count": 10,
+        "mape": 1.4808095022209828,
+        "max_ape": 3.73700916351236,
+        "rmse_log": 0.018534834738592472
+      },
+      {
+        "count": 10,
+        "mape": 3.0345649058415196,
+        "max_ape": 6.8850826312472035,
+        "rmse_log": 0.03711713634092957
+      },
+      {
+        "count": 10,
+        "mape": 3.5700038294550893,
+        "max_ape": 6.161211952898844,
+        "rmse_log": 0.04031887052304903
+      },
+      {
+        "count": 10,
+        "mape": 8.33139562696683,
+        "max_ape": 15.392185071756906,
+        "rmse_log": 0.10040423503274302
+      }
+    ],
+    "model": [
+      {
+        "count": 10,
+        "mape": 0.03837563144123763,
+        "max_ape": 0.05960508520915884,
+        "rmse_log": 0.0004138235056202931
+      },
+      {
+        "count": 10,
+        "mape": 0.03680110225133163,
+        "max_ape": 0.07567777794038494,
+        "rmse_log": 0.000421395655583118
+      },
+      {
+        "count": 10,
+        "mape": 0.04184272283822853,
+        "max_ape": 0.13370472898195804,
+        "rmse_log": 0.0005721031444587766
+      },
+      {
+        "count": 10,
+        "mape": 0.08512840254546133,
+        "max_ape": 0.1598888981456418,
+        "rmse_log": 0.0009628396637425027
+      },
+      {
+        "count": 10,
+        "mape": 0.2008246339063942,
+        "max_ape": 0.7491698807396826,
+        "rmse_log": 0.0028010342589391457
+      },
+      {
+        "count": 10,
+        "mape": 0.183731067473856,
+        "max_ape": 0.7782285525676575,
+        "rmse_log": 0.002771232921468756
+      },
+      {
+        "count": 10,
+        "mape": 0.28612506378051716,
+        "max_ape": 0.7210458623441348,
+        "rmse_log": 0.003773385537191129
+      },
+      {
+        "count": 10,
+        "mape": 0.7030523888858682,
+        "max_ape": 1.3825969767301822,
+        "rmse_log": 0.008298551050460831
+      },
+      {
+        "count": 10,
+        "mape": 0.49370986156342267,
+        "max_ape": 1.1370764749168172,
+        "rmse_log": 0.006282895500246311
+      },
+      {
+        "count": 10,
+        "mape": 1.0418293104332803,
+        "max_ape": 4.6809725095992665,
+        "rmse_log": 0.016714685483377765
+      }
+    ]
+  },
+  "hybrid_sweep": [
+    {
+      "threshold": 0.0019973576351399736,
+      "use_model_frac": 0.99,
+      "count": 100,
+      "mape": 0.3178579771099452,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.006514625741119434
+    },
+    {
+      "threshold": 0.008855974411762673,
+      "use_model_frac": 0.95,
+      "count": 100,
+      "mape": 0.3485195310291625,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.006711348624236638
+    },
+    {
+      "threshold": 0.013690553276060492,
+      "use_model_frac": 0.9,
+      "count": 100,
+      "mape": 0.3922214584432787,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.007015791654163719
+    },
+    {
+      "threshold": 0.017468672435353508,
+      "use_model_frac": 0.85,
+      "count": 100,
+      "mape": 0.4388514146896996,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.007345895571702429
+    },
+    {
+      "threshold": 0.019253068177619313,
+      "use_model_frac": 0.8,
+      "count": 100,
+      "mape": 0.4878728740366778,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.007694777710028723
+    },
+    {
+      "threshold": 0.025429592027215592,
+      "use_model_frac": 0.75,
+      "count": 100,
+      "mape": 0.5413306015280204,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.008073320994123504
+    },
+    {
+      "threshold": 0.02979916089214819,
+      "use_model_frac": 0.7,
+      "count": 100,
+      "mape": 0.599900962766169,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.008544404023615643
+    },
+    {
+      "threshold": 0.035299407994300494,
+      "use_model_frac": 0.65,
+      "count": 100,
+      "mape": 0.6619611832909257,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.009037224098215892
+    },
+    {
+      "threshold": 0.04176333886441781,
+      "use_model_frac": 0.6,
+      "count": 100,
+      "mape": 0.7311938332270077,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.009640194961310676
+    },
+    {
+      "threshold": 0.05288921091294831,
+      "use_model_frac": 0.55,
+      "count": 100,
+      "mape": 0.8080880535371048,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.010354332621163457
+    },
+    {
+      "threshold": 0.06113646722099225,
+      "use_model_frac": 0.5,
+      "count": 100,
+      "mape": 0.9009171328173253,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.011393988580657356
+    },
+    {
+      "threshold": 0.0794855114926613,
+      "use_model_frac": 0.45,
+      "count": 100,
+      "mape": 1.0227787178142371,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.01282995348500548
+    },
+    {
+      "threshold": 0.09077222642513151,
+      "use_model_frac": 0.4,
+      "count": 100,
+      "mape": 1.152884376245325,
+      "max_ape": 4.6809725095992665,
+      "rmse_log": 0.0143593360673679
+    },
+    {
+      "threshold": 0.11806947078525605,
+      "use_model_frac": 0.35,
+      "count": 100,
+      "mape": 1.32680034870332,
+      "max_ape": 4.7370189190740835,
+      "rmse_log": 0.016634141186468852
+    },
+    {
+      "threshold": 0.13678969501744345,
+      "use_model_frac": 0.3,
+      "count": 100,
+      "mape": 1.5267222597903278,
+      "max_ape": 5.574667386314231,
+      "rmse_log": 0.019523287575503326
+    },
+    {
+      "threshold": 0.17546854349693092,
+      "use_model_frac": 0.25,
+      "count": 100,
+      "mape": 1.785241579846303,
+      "max_ape": 8.548614486257213,
+      "rmse_log": 0.023853829312836524
+    },
+    {
+      "threshold": 0.2028391731223497,
+      "use_model_frac": 0.2,
+      "count": 100,
+      "mape": 2.107578460951015,
+      "max_ape": 9.418278220437976,
+      "rmse_log": 0.02933928976670117
+    },
+    {
+      "threshold": 0.2463589054608839,
+      "use_model_frac": 0.15,
+      "count": 100,
+      "mape": 2.4888395051835217,
+      "max_ape": 10.948518621213408,
+      "rmse_log": 0.03520104118640347
+    },
+    {
+      "threshold": 0.2929345060663594,
+      "use_model_frac": 0.1,
+      "count": 100,
+      "mape": 2.9769875824676313,
+      "max_ape": 13.513534797488367,
+      "rmse_log": 0.042944935627011384
+    },
+    {
+      "threshold": 0.4159077903352219,
+      "use_model_frac": 0.05,
+      "count": 100,
+      "mape": 3.6144543510400955,
+      "max_ape": 20.582051467832425,
+      "rmse_log": 0.05469446159055143
+    },
+    {
+      "threshold": 0.5986920913080976,
+      "use_model_frac": 0.0,
+      "count": 100,
+      "mape": 4.448487093353489,
+      "max_ape": 23.01341327805483,
+      "rmse_log": 0.07148128267459324
+    }
+  ],
+  "representatives": [
+    {
+      "bin": 0,
+      "row_pos": 55,
+      "index": null,
+      "mesh_filename": "bubble.0253.46.obj",
+      "non_sphericity": 0.007930241945348415,
+      "frequency": 5.297342874,
+      "bin_median": 0.008417469559250657
+    },
+    {
+      "bin": 1,
+      "row_pos": 5,
+      "index": null,
+      "mesh_filename": "bubble.0131.16.obj",
+      "non_sphericity": 0.017650536963583097,
+      "frequency": 5.313778677,
+      "bin_median": 0.017044321869484458
+    },
+    {
+      "bin": 2,
+      "row_pos": 20,
+      "index": null,
+      "mesh_filename": "bubble.0360.74.obj",
+      "non_sphericity": 0.024435887862504058,
+      "frequency": 5.311742507,
+      "bin_median": 0.02509835730564508
+    },
+    {
+      "bin": 3,
+      "row_pos": 54,
+      "index": null,
+      "mesh_filename": "bubble.0249.8.obj",
+      "non_sphericity": 0.03501284326889065,
+      "frequency": 5.321504437,
+      "bin_median": 0.035233277673052066
+    },
+    {
+      "bin": 4,
+      "row_pos": 31,
+      "index": null,
+      "mesh_filename": "bubble.0200.35.obj",
+      "non_sphericity": 0.052242144354085474,
+      "frequency": 5.354018825,
+      "bin_median": 0.052830386680324415
+    },
+    {
+      "bin": 5,
+      "row_pos": 8,
+      "index": null,
+      "mesh_filename": "bubble.0224.44.obj",
+      "non_sphericity": 0.08023658360813413,
+      "frequency": 5.377794095,
+      "bin_median": 0.07955379077588609
+    },
+    {
+      "bin": 6,
+      "row_pos": 41,
+      "index": null,
+      "mesh_filename": "bubble.0231.16.obj",
+      "non_sphericity": 0.12200732303881645,
+      "frequency": 5.501197014,
+      "bin_median": 0.11897820592069303
+    },
+    {
+      "bin": 7,
+      "row_pos": 68,
+      "index": null,
+      "mesh_filename": "bubble.0301.46.obj",
+      "non_sphericity": 0.18110781219507432,
+      "frequency": 5.659279877,
+      "bin_median": 0.1773482997296454
+    },
+    {
+      "bin": 8,
+      "row_pos": 72,
+      "index": null,
+      "mesh_filename": "bubble.0307.28.obj",
+      "non_sphericity": 0.24586028071307342,
+      "frequency": 5.901186245,
+      "bin_median": 0.24752236320577498
+    },
+    {
+      "bin": 9,
+      "row_pos": 2,
+      "index": null,
+      "mesh_filename": "bubble.0044.15.obj",
+      "non_sphericity": 0.44599675526597626,
+      "frequency": 6.397758196,
+      "bin_median": 0.4301604579340001
+    }
+  ]
+}

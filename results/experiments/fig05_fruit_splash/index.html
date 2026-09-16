@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fruit Splash — BubbleGym Fig. 5</title>
+<meta name="description" content="Figure 5 of BubbleGym: fruit-shaped rigid bodies fall into a Lattice Boltzmann fluid simulation, creating numerous nonspherical bubbles.">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('bubblegym-theme');
+      if (saved === 'dark' || saved === 'light') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    } catch (e) { /* private mode: fall through to the system preference */ }
+  })();
+</script>
+<link rel="stylesheet" href="../page.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">BubbleGym</span>
+    <a class="item" href="../../../index.html">&#8592; Project page</a>
+    <a class="item" href="../README.md">All figures</a>
+    <button id="theme-toggle" type="button" aria-label="Switch between light and dark mode">
+      <span id="theme-icon">&#9790;</span> <span id="theme-label">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Figure 5</div>
+    <h1>Fruit Splash</h1>
+  </header>
+
+  <section>
+    <figure>
+      <img src="fruits_final.jpg"
+           alt="Fruit falling into a water tank, entraining a cloud of nonspherical bubbles">
+    </figure>
+  </section>
+
+  <section>
+    <h2>Figure 5 caption</h2>
+    <p>
+      <strong>Fruit Splash!</strong> Several fruit-shaped rigid bodies fall into
+      a Lattice Boltzmann fluid simulation, creating numerous nonspherical
+      bubbles. See the supplemental video for sound comparisons across
+      bubble-frequency models.
+    </p>
+  </section>
+
+  <section>
+    <h2>From Section 6, &ldquo;Fruit Splash!&rdquo;</h2>
+    <p>
+      Five fruits are dropped into a water tank. The synthesized audio captures
+      the characteristic &ldquo;plop&rdquo; of each impact, followed by a
+      gurgling decay. A wide variety of bubble shapes form during impact, and
+      our frequency model captures the higher-pitched gurgles from large
+      deformed bubbles, whereas Minnaert's spherical assumption systematically
+      underpredicts.
+    </p>
+  </section>
+
+  <section>
+    <h2>Video</h2>
+    <div class="videoslot">
+      <span class="vs-ico">&#9654;</span>
+      <span>Supplemental video &mdash; not yet added</span>
+      <span class="vs-hint">Drop the file in this folder and swap this block for the
+        commented-out &lt;video&gt; element below.</span>
+    </div>
+    <!-- Ready for the file; set the name and delete the .videoslot block above.
+    <video class="scenevideo" controls preload="metadata" poster="POSTER.jpg">
+      <source src="VIDEO.mp4" type="video/mp4">
+    </video>
+    -->
+  </section>
+
+  <section>
+    <h2>Files</h2>
+    <table>
+      <tr><th>What</th><th>Where</th></tr>
+      <tr><td>The scene</td>
+          <td><code>dataset/fruit_splash/</code> &mdash; BEM, learned surrogate and
+              Minnaert, each a separate <code>trackedBubInfo</code> sharing one
+              bubble graph</td></tr>
+      <tr><td>Per-mesh BEM sweep</td>
+          <td><code>results/experiments/table01_timing_across_scenes/</code>,
+              the source of this scene's row in Table 1</td></tr>
+      <tr><td>End-to-end timing</td>
+          <td>Figure 8, <code>results/experiments/fig08_end_to_end_timing/</code></td></tr>
+    </table>
+  </section>
+
+</div>
+
+<footer class="wrap">
+  <a href="../README.md">Every figure and table, with its data</a> &middot;
+  <a href="../../../index.html">BubbleGym project page</a>
+</footer>
+
+<script src="../page.js"></script>
+
+</body>
+</html>

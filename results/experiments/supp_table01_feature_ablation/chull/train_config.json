@@ -1,0 +1,26 @@
+{
+  "variant_name": "chull",
+  "dataset": "dataset/bubble_gym/dataset_bubblegym_10k.csv",
+  "output_dir": "results/experiments/supp_table01_feature_ablation/chull",
+  "batch_size": 64,
+  "epochs": 400,
+  "lr": 0.003,
+  "weight_decay": 0.0001,
+  "patience": 40,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "seed": 42,
+  "num_workers": 0,
+  "device": "cuda",
+  "baseline_kind": "none_log_direct",
+  "feature_cols": [
+    "eta_V",
+    "eta_A",
+    "eta_M"
+  ],
+  "hidden_dim": 64,
+  "hidden_dim2": 32,
+  "dropout": 0.1,
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "n_params": 6849
+}

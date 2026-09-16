@@ -1,0 +1,97 @@
+{
+  "bin_by": "eta_V",
+  "axis_label": "$\\eta_V$   (eta_V)",
+  "scalar": "eta_V",
+  "features": 8,
+  "pool": {
+    "what": "test split of the 8-feature retrains",
+    "n": 1485,
+    "disjoint_from_fig04_meshes": true,
+    "disjoint_from_train_and_val": true
+  },
+  "bins": 10,
+  "per_bin": 10,
+  "n_selected": 100,
+  "bin_edges": [
+    0.17046041786670685,
+    0.6040604472160339,
+    0.8333642482757568,
+    0.9485366582870484,
+    0.9826747417449951,
+    0.9934242367744446,
+    0.9972323775291443,
+    0.9985169529914856,
+    0.9991873979568482,
+    0.9997141361236572,
+    0.9999809265136719
+  ],
+  "selection": "farthest-point sampling in the standardized 8-feature space, seeded from the bin's median-scalar bubble (deterministic)",
+  "bin_thumbnails": [
+    {
+      "bin": 0,
+      "mesh_id_10k": "VOF/bubble.0234.19.obj",
+      "bin_scalar": 0.4494830071926117
+    },
+    {
+      "bin": 1,
+      "mesh_id_10k": "VOF/bubble.0216.65.obj",
+      "bin_scalar": 0.7225006222724915
+    },
+    {
+      "bin": 2,
+      "mesh_id_10k": "LBM/bubble.0057.50.obj",
+      "bin_scalar": 0.9045146107673645
+    },
+    {
+      "bin": 3,
+      "mesh_id_10k": "VOF/bubble.0239.19.obj",
+      "bin_scalar": 0.9691043496131897
+    },
+    {
+      "bin": 4,
+      "mesh_id_10k": "LBM/bubble.0078.195.obj",
+      "bin_scalar": 0.9869271516799927
+    },
+    {
+      "bin": 5,
+      "mesh_id_10k": "VOF/bubble.0270.60.obj",
+      "bin_scalar": 0.9956951141357422
+    },
+    {
+      "bin": 6,
+      "mesh_id_10k": "LBM/bubble.0089.82.obj",
+      "bin_scalar": 0.9977369904518127
+    },
+    {
+      "bin": 7,
+      "mesh_id_10k": "VOF/bubble.0237.1.obj",
+      "bin_scalar": 0.9987936615943909
+    },
+    {
+      "bin": 8,
+      "mesh_id_10k": "VOF/bubble.0141.63.obj",
+      "bin_scalar": 0.9995611310005188
+    },
+    {
+      "bin": 9,
+      "mesh_id_10k": "VOF/bubble.0283.10.obj",
+      "bin_scalar": 0.999833881855011
+    }
+  ],
+  "overall_mape_pct": {
+    "minnaert": 5.160249981245001,
+    "strasberg": 1.6954666290067053,
+    "residual": 0.16608595782798943,
+    "direct": 0.15597643316825496
+  },
+  "max_ape_pct": {
+    "minnaert": 24.9702740300792,
+    "strasberg": 17.942937858697466,
+    "residual": 3.3931836480991184,
+    "direct": 3.263827192220066
+  },
+  "source_counts": {
+    "VOF": 63,
+    "LBM": 37
+  }
+}

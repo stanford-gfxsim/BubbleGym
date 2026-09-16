@@ -1,0 +1,47 @@
+{
+  "variant_name": "inertia_chull",
+  "best_epoch": 231,
+  "test_metrics": {
+    "rmse_log": 0.004170691664188914,
+    "mape": 0.22706369618972158,
+    "max_ape": 4.17486979929117
+  },
+  "test_metrics_per_source": {
+    "LBM": {
+      "count": 616,
+      "rmse_log": 0.005080272264321153,
+      "mape": 0.3145721144304737,
+      "max_ape": 3.0441923647402795
+    },
+    "VOF": {
+      "count": 884,
+      "rmse_log": 0.0033957581018630484,
+      "mape": 0.16608497940664005,
+      "max_ape": 4.174869799291788
+    }
+  },
+  "history_len": 271,
+  "feature_cols": [
+    "i11_over_i00",
+    "i22_over_i00",
+    "eta_V",
+    "eta_A",
+    "eta_M"
+  ],
+  "hidden_dim": 64,
+  "hidden_dim2": 32,
+  "n_params": 6977,
+  "model_checkpoint": "bubble_freq_net_best.pt",
+  "baseline_kind": "none_log_direct",
+  "inference_timing": {
+    "device": "cuda",
+    "batch_size": 100,
+    "warmup": 30,
+    "repeats": 150,
+    "forward_mean_ms": 0.2542472526927789,
+    "forward_std_ms": 0.07347865250826369,
+    "forward_median_ms": 0.22889599949121475,
+    "per_sample_mean_us": 2.542472526927789,
+    "throughput_samples_per_s": 393317.9176603948
+  }
+}

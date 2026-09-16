@@ -1,0 +1,147 @@
+{
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "cpu": "Intel(R) Core(TM) i9-14900K",
+    "os": "Windows 10",
+    "python": "3.11.15",
+    "torch": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda": "12.8",
+    "driver": "595.97",
+    "note": "Collected on the Sec. 6 machine, which is what the paper reports. Supersedes an earlier collection on an RTX 5090 with a Threadripper CPU (forward 0.28/0.27/0.26/0.28/0.29 us); the call is dispatch-bound, so the CPU moves it as much as the GPU does. Supplement Table 2's inference column and Table 1's caption constants both read from this file."
+  },
+  "protocol": {
+    "batch": 512,
+    "passes": 7,
+    "warmup": 30,
+    "repeats": 150,
+    "scripted": true
+  },
+  "results": {
+    "h16_h8": {
+      "n_params": 641,
+      "forward_us_per_bubble_mean": 0.3548929165671801,
+      "forward_us_per_bubble_std": 0.004310254904941963,
+      "fullpath_us_per_bubble_mean": 0.5383180796668187,
+      "fullpath_us_per_bubble_std": 0.04168210861172655,
+      "forward_us_per_bubble_passes": [
+        0.3473099994395549,
+        0.3559258322153861,
+        0.35929666832089424,
+        0.3557904167488838,
+        0.3562154162985583,
+        0.34987958322744817,
+        0.3598324997195353
+      ],
+      "fullpath_us_per_bubble_passes": [
+        0.599040363340464,
+        0.6086145841284937,
+        0.5140351553715542,
+        0.5109101539346739,
+        0.5130937499113012,
+        0.5180585924335901,
+        0.504473958547654
+      ]
+    },
+    "h32_h16": {
+      "n_params": 2049,
+      "forward_us_per_bubble_mean": 0.3941195235598744,
+      "forward_us_per_bubble_std": 0.08779272957151939,
+      "fullpath_us_per_bubble_mean": 0.5207801333047731,
+      "fullpath_us_per_bubble_std": 0.031081769055459844,
+      "forward_us_per_bubble_passes": [
+        0.3581449987056355,
+        0.6086770815697188,
+        0.37227166661371786,
+        0.35553749999962747,
+        0.3564750003473212,
+        0.35387500072829425,
+        0.35385541695480544
+      ],
+      "fullpath_us_per_bubble_passes": [
+        0.593291666367198,
+        0.5233945303947015,
+        0.5156770854834273,
+        0.5097057267751856,
+        0.4959361964059402,
+        0.5123971345710743,
+        0.49505859313588496
+      ]
+    },
+    "h64_h32": {
+      "n_params": 7169,
+      "forward_us_per_bubble_mean": 0.37212583377757774,
+      "forward_us_per_bubble_std": 0.045055020482908985,
+      "fullpath_us_per_bubble_mean": 0.5154869797609406,
+      "fullpath_us_per_bubble_std": 0.039006782155873644,
+      "forward_us_per_bubble_passes": [
+        0.4802366658501948,
+        0.3489958339681228,
+        0.3752679177947963,
+        0.34974624946092564,
+        0.3463808350109806,
+        0.3547033331900214,
+        0.34955000116800267
+      ],
+      "fullpath_us_per_bubble_passes": [
+        0.6086197928804419,
+        0.5106888026299808,
+        0.4861497412396905,
+        0.494105469973268,
+        0.5048750009943129,
+        0.5108984373691783,
+        0.4930716132397114
+      ]
+    },
+    "h128_h64": {
+      "n_params": 26625,
+      "forward_us_per_bubble_mean": 0.36550273765377433,
+      "forward_us_per_bubble_std": 0.008184960437039776,
+      "fullpath_us_per_bubble_mean": 0.5133610488341912,
+      "fullpath_us_per_bubble_std": 0.03669792428879232,
+      "forward_us_per_bubble_passes": [
+        0.3671808329333241,
+        0.3586249999352731,
+        0.3691629159341877,
+        0.3814391650181885,
+        0.3588495834264904,
+        0.3678445836218695,
+        0.35541708270708716
+      ],
+      "fullpath_us_per_bubble_passes": [
+        0.6008007812852156,
+        0.493960935348999,
+        0.4966145850933875,
+        0.4896953127323892,
+        0.518381509664323,
+        0.495243489240238,
+        0.49883072847478616
+      ]
+    },
+    "h256_h128": {
+      "n_params": 102401,
+      "forward_us_per_bubble_mean": 0.4000647022205937,
+      "forward_us_per_bubble_std": 0.07906166343232977,
+      "fullpath_us_per_bubble_mean": 0.5289268965823015,
+      "fullpath_us_per_bubble_std": 0.035888345694362,
+      "forward_us_per_bubble_passes": [
+        0.59313249696667,
+        0.37887374967491877,
+        0.36273958336096257,
+        0.3703912507626228,
+        0.3728716680780053,
+        0.36079833322825533,
+        0.3616458334727213
+      ],
+      "fullpath_us_per_bubble_passes": [
+        0.6142408843364441,
+        0.5315091118518467,
+        0.5105091126248832,
+        0.5027812502097125,
+        0.5139752609769251,
+        0.5211223943509443,
+        0.5083502617253544
+      ]
+    }
+  }
+}

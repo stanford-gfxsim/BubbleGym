@@ -1,0 +1,23 @@
+{
+  "label": "exhale15",
+  "n_rows": 228413,
+  "n_bem_rows": 226562,
+  "n_nn_only_rows": 1851,
+  "n_failures": 2513,
+  "hardware_cpu": "Intel(R) Core(TM) i9-14900K (32 logical cores)",
+  "hardware_gpu": "NVIDIA GeForce RTX 5090",
+  "bem_settings": "P1-DP0, mass precond, gmres tol=1e-12, quad 6/6",
+  "mean_bem_s": 0.7416507042308125,
+  "median_bem_s": 0.3397603000048548,
+  "mean_bem_assemble_s": 0.7128580402521515,
+  "median_bem_assemble_s": 0.3189863999723457,
+  "mean_bem_solve_s": 0.028792663978661006,
+  "median_bem_solve_s": 0.02014100004453212,
+  "max_bem_s": 87.69360600004438,
+  "total_bem_hours": 46.67496301442815,
+  "mean_nn_feat_s": 0.009033261280115435,
+  "median_nn_feat_s": 0.005788999958895147,
+  "mean_nn_infer_gpu_s": 0.0005136407231594706,
+  "mean_nn_infer_cpu_s": 0.00022706480625461878,
+  "mean_f_hz_bem": 5.380667757974875
+}

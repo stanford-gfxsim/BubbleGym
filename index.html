@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BubbleGym: A Practical Shape-to-Frequency Model for Acoustic Bubbles</title>
+<meta name="description" content="A benchmark dataset of 10,000 nonspherical bubbles with BEM ground-truth resonant frequencies, and a compact shape-to-frequency model that runs up to 1428x faster than BEM.">
+<meta name="color-scheme" content="light dark">
+
+<meta property="og:title" content="BubbleGym: A Practical Shape-to-Frequency Model for Acoustic Bubbles">
+<meta property="og:description" content="A benchmark dataset of 10,000 nonspherical bubbles with BEM ground-truth resonant frequencies, and a compact shape-to-frequency model that runs up to 1428x faster than BEM.">
+<meta property="og:type" content="article">
+
+<!-- Resolve the theme before first paint, so a dark-mode visitor never sees a
+     white flash. -->
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('bubblegym-theme');
+      if (saved === 'dark' || saved === 'light') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    } catch (e) { /* private mode: fall through to the system preference */ }
+  })();
+</script>
+
+<style>
+  /* Light is the base; the two blocks below re-declare only the tokens, so a
+     colour is never defined solely inside a media query. */
+  :root{
+    --ink:#1a1a1a; --muted:#5b5b5b; --rule:#e2e2e2;
+    --bg:#ffffff; --panel:#fafafa; --link:#1a5fb4; --accent:#0b6b6b;
+    --figure-bg:#ffffff;
+    --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono: ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    /* The shape-space hero breaks out of the 900px text column. */
+    --hero-w: min(1240px, calc(100vw - 64px));
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#e8e8e8; --muted:#a6a6a6; --rule:#333333; --bg:#151515;
+      --panel:#1d1d1d; --link:#7fb2f0; --accent:#67c9c9; --figure-bg:#151515;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#e8e8e8; --muted:#a6a6a6; --rule:#333333; --bg:#151515;
+    --panel:#1d1d1d; --link:#7fb2f0; --accent:#67c9c9; --figure-bg:#151515;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:17px; line-height:1.6;
+  }
+  a{color:var(--link); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:900px; margin:0 auto; padding:0 24px}
+
+  /* ---- top bar ---- */
+  nav{border-bottom:1px solid var(--rule); background:var(--bg);
+      position:sticky; top:0; z-index:10}
+  nav .wrap{display:flex; align-items:center; gap:22px; height:56px}
+  nav .brand{font-family:var(--serif); font-size:20px; font-weight:600;
+             color:var(--ink); margin-right:auto}
+  nav a.item{font-size:15px; color:var(--muted)}
+  nav a.item:hover{color:var(--ink); text-decoration:none}
+  #theme-toggle{
+    margin-left:6px; cursor:pointer; font:inherit; font-size:15px; line-height:1;
+    background:var(--panel); color:var(--ink);
+    border:1px solid var(--rule); border-radius:999px; padding:7px 13px;
+  }
+  #theme-toggle:hover{border-color:var(--accent); color:var(--accent)}
+  /* Demos opens a menu of the scene pages. Hover for a mouse, focus-within
+     for the keyboard, so tabbing to the link reveals the same menu. */
+  .navdrop{position:relative; display:inline-block}
+  .navmenu{
+    display:none; position:absolute; right:0; top:calc(100% + 6px); z-index:20;
+    min-width:214px; padding:6px 0;
+    background:var(--bg); border:1px solid var(--rule); border-radius:10px;
+    box-shadow:0 6px 22px rgba(0,0,0,.14);
+  }
+  .navdrop:hover .navmenu, .navdrop:focus-within .navmenu{display:block}
+  .navmenu a{display:block; padding:8px 15px; font-size:14.5px; color:var(--ink)}
+  .navmenu a:hover{background:var(--panel); color:var(--accent); text-decoration:none}
+  @media (max-width:620px){ nav a.item{display:none} .navdrop{display:none} }
+
+  /* ---- title block ---- */
+  header{padding:52px 0 8px; text-align:center}
+  h1{font-family:var(--serif); font-weight:600; font-size:44px;
+     line-height:1.15; margin:0 0 14px}
+  h1 .tagline{display:block; font-size:26px; line-height:1.25; margin-top:8px}
+  @media (max-width:700px){
+    h1{font-size:34px}
+    h1 .tagline{font-size:20px}
+  }
+  .venue{font-size:16px; color:var(--muted); margin-bottom:22px}
+  .authors{font-size:18px; line-height:2; margin-bottom:6px}
+  .authors a{color:var(--ink); border-bottom:1px solid var(--rule)}
+  .authors a:hover{color:var(--accent); border-bottom-color:var(--accent);
+                   text-decoration:none}
+  .authors sup{font-size:12px; color:var(--accent); border:0}
+  .affil{font-size:14.5px; color:var(--muted)}
+  .affil sup{font-size:12px; color:var(--accent)}
+
+  /* ---- sections ---- */
+  section{padding:38px 0; border-top:1px solid var(--rule)}
+  section:first-of-type{border-top:none}
+  h2{font-family:var(--serif); font-weight:600; font-size:25px; margin:0 0 16px}
+  h3{font-size:17px; margin:26px 0 8px; font-weight:600}
+  p{margin:0 0 14px}
+  .lead{font-size:17.5px}
+
+  figure{margin:0 0 22px}
+  figure img{width:100%; height:auto; display:block; border:1px solid var(--rule);
+             border-radius:6px; background:var(--figure-bg)}
+  figcaption{font-size:14.5px; color:var(--muted); margin-top:9px}
+  figcaption b{color:var(--ink)}
+
+  /* Each figure ships a light and a dark rendering; show the one that matches.
+     Same three-state logic as the tokens above. */
+  .fig-dark{display:none}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .fig-light{display:none}
+    :root:not([data-theme="light"]) .fig-dark{display:block}
+  }
+  :root[data-theme="dark"] .fig-light{display:none}
+  :root[data-theme="dark"] .fig-dark{display:block}
+  :root[data-theme="light"] .fig-light{display:block}
+  :root[data-theme="light"] .fig-dark{display:none}
+
+  /* ---- hero: the interactive dataset explorer ---- */
+  .hero{border:1px solid var(--rule); border-radius:8px; overflow:hidden;
+        background:var(--figure-bg)}
+  .hero iframe{display:block; width:100%; height:clamp(560px,76vh,880px); border:0}
+  @media (max-width:700px){ .hero iframe{height:440px} }
+  /* Widen past the text column: the negative margin recentres the wider box. */
+  .hero-wide{width:var(--hero-w); margin-left:calc((100% - var(--hero-w)) / 2)}
+  .hero-wide figcaption{max-width:820px; margin-left:auto; margin-right:auto;
+                        text-align:center}
+  .hero .fallback{padding:26px; text-align:center; color:var(--muted)}
+  .hero-touch{display:none; padding:40px 22px; text-align:center; color:var(--ink)}
+  .hero-touch:hover{text-decoration:none}
+  .hero-touch .ht-ico{display:block; font-size:30px; margin-bottom:12px}
+  .hero-touch .ht-t{display:block; font-family:var(--serif); font-size:20px;
+                    font-weight:600}
+  .hero-touch .ht-s{display:block; font-size:14px; color:var(--muted); margin-top:7px}
+  @media (max-width:700px){
+    .hero iframe{display:none}
+    .hero-touch{display:block}
+  }
+
+  /* ---- code / bibtex ---- */
+  pre{background:var(--panel); border:1px solid var(--rule); border-radius:8px;
+      padding:16px; overflow-x:auto; font-family:var(--mono); font-size:13.5px;
+      line-height:1.5; margin:0}
+  code{font-family:var(--mono); font-size:14px;
+       background:var(--panel); padding:1px 5px; border-radius:4px}
+  pre code{background:none; padding:0; font-size:inherit}
+
+  table{border-collapse:collapse; width:100%; font-size:15px; margin-bottom:16px}
+  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--rule)}
+  th{font-weight:600}
+
+  /* ---- resource cards (paper / supplement / code) ---- */
+  .rescards{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;
+            margin:30px 0 12px; text-align:left}
+  .rescards a{display:block; border:1px solid var(--rule); border-radius:10px;
+              padding:16px 18px; background:var(--panel); color:var(--ink)}
+  .rescards a:hover{border-color:var(--accent); text-decoration:none}
+  .rescards .ico{display:block; font-size:23px; line-height:1; margin-bottom:10px}
+  .rescards .t{display:block; font-family:var(--serif); font-size:20px;
+               font-weight:600}
+  .rescards .s{display:block; font-size:13.5px; color:var(--muted); margin-top:3px}
+  .rescards a:hover .t{color:var(--accent)}
+  @media (max-width:700px){ .rescards{grid-template-columns:1fr} }
+
+  /* ---- supplemental video ----
+     Holds a 16:9 box while the file is missing, so adding it later does not
+     reflow the page around it. */
+  .videoslot{
+    aspect-ratio:16/9; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; gap:7px;
+    padding:22px; color:var(--muted);
+    background:var(--panel); border:1px dashed var(--rule); border-radius:10px;
+  }
+  .videoslot .vs-ico{font-size:30px; line-height:1; color:var(--accent)}
+  .videoslot .vs-hint{font-size:13.5px; max-width:46ch}
+  .scenevideo{width:100%; height:auto; display:block; border-radius:10px;
+              border:1px solid var(--rule); background:#000}
+
+  /* ---- news ---- */
+  .news{list-style:none; margin:0; padding:0}
+  .news li{display:flex; gap:18px; padding:11px 0;
+           border-bottom:1px solid var(--rule)}
+  .news li:last-child{border-bottom:none}
+  .news .when{flex:0 0 104px; color:var(--muted); font-size:14.5px; padding-top:2px}
+  .news .what{flex:1}
+  @media (max-width:560px){
+    .news li{flex-direction:column; gap:2px}
+    .news .when{flex:none}
+  }
+
+  /* ---- demo cards ---- */
+  .demos{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  .demo{display:block; border:1px solid var(--rule); border-radius:10px;
+        overflow:hidden; background:var(--panel); color:var(--ink)}
+  .demo:hover{border-color:var(--accent); text-decoration:none}
+  .demo .shot{display:block; height:176px; overflow:hidden;
+              background:var(--figure-bg); border-bottom:1px solid var(--rule)}
+  /* A plot with a transparent background: pad it and show it whole, so the
+     card's own panel colour shows through and the white lettering reads. */
+  .demo .figshot{width:100%; height:100%; object-fit:contain; display:block;
+                 padding:10px; box-sizing:border-box}
+  /* A rendered scene: fill the frame, since these are photographs of a scene
+     rather than diagrams and cropping them costs nothing. */
+  .demo .photoshot{width:100%; height:100%; object-fit:cover; display:block}
+  .demo .numeral{display:flex; flex-direction:column; align-items:center;
+                 justify-content:center; height:100%; text-align:center;
+                 padding:0 14px; box-sizing:border-box}
+  .demo .numeral .big{font-family:var(--serif); font-size:44px; line-height:1;
+                      color:var(--accent)}
+  .demo .numeral .sub{font-size:13.5px; color:var(--muted); margin-top:9px}
+  .demo .snippet{margin:0; height:100%; border:0; border-radius:0; padding:13px;
+                 font-size:11.5px; line-height:1.55; overflow:hidden;
+                 background:var(--figure-bg)}
+  .demo .body{display:block; padding:14px 16px 17px}
+  .demo .t{display:block; font-family:var(--serif); font-size:19px;
+           font-weight:600}
+  .demo .s{display:block; font-size:14px; color:var(--muted); margin-top:4px}
+  .demo:hover .t{color:var(--accent)}
+  @media (max-width:820px){ .demos{grid-template-columns:1fr} }
+
+  footer{border-top:1px solid var(--rule); padding:26px 0 60px;
+         font-size:14.5px; color:var(--muted)}
+
+  /* ---- small screens ---- */
+  @media (max-width:700px){
+    body{font-size:16px}
+    section{padding:30px 0}
+    h2{font-size:22px}
+    .lead{font-size:16.5px}
+    /* Long identifiers in the reproduction table must not widen the page. */
+    table{font-size:14px}
+    th,td{padding:7px 8px}
+    td code{overflow-wrap:anywhere}
+    .demo .shot{height:150px}
+    .demo .snippet{font-size:10.5px}
+  }
+  @media (max-width:460px){
+    .wrap{padding:0 17px}
+    h1{font-size:28px}
+    h1 .tagline{font-size:18px}
+    .venue,.affil{font-size:13.5px}
+    .authors{font-size:16px; line-height:1.9}
+    nav .wrap{gap:12px}
+    pre{font-size:12px; padding:13px}
+  }
+  /* Nothing on the page may scroll sideways. */
+  html,body{overflow-x:hidden}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">BubbleGym</span>
+    <a class="item" href="#news">News</a>
+    <a class="item" href="#abstract">Abstract</a>
+    <a class="item" href="#video">Video</a>
+    <span class="navdrop">
+      <a class="item" href="#demos" aria-haspopup="true">Demos &#9662;</a>
+      <span class="navmenu">
+        <a href="results/experiments/fig01_bubble_theater/index.html">Bubble Theater</a>
+        <a href="results/experiments/fig07_single_rising_bubble/index.html">Single rising bubble</a>
+        <a href="results/experiments/fig05_fruit_splash/index.html">Fruit Splash</a>
+        <a href="results/experiments/fig06_underwater_exhalation/index.html">Underwater exhalation</a>
+        <a href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">Interactive shape space</a>
+      </span>
+    </span>
+    <a class="item" href="#bibtex">BibTeX</a>
+    <button id="theme-toggle" type="button" aria-label="Switch between light and dark mode">
+      <span id="theme-icon">&#9790;</span> <span id="theme-label">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<header class="wrap">
+  <h1>BubbleGym<span class="tagline">A Practical Shape-to-Frequency Model for Acoustic Bubbles</span></h1>
+  <div class="venue">SIGGRAPH Asia 2026 Conference Papers &middot; December 2026 &middot; Kuala Lumpur, Malaysia</div>
+  <div class="authors">
+    <a href="https://zhehaoli1999.github.io/">Zhehao Li</a><sup>1</sup> &nbsp;&middot;&nbsp;
+    <a href="https://kuiwuchn.github.io/">Kui Wu</a><sup>2</sup> &nbsp;&middot;&nbsp;
+    <a href="https://lwkobe.github.io/">Wei Li</a><sup>3</sup> &nbsp;&middot;&nbsp;
+    <a href="https://graphics.stanford.edu/~djames/">Doug L. James</a><sup>1</sup>
+  </div>
+  <div class="affil">
+    <sup>1</sup>Stanford University &nbsp;&nbsp;
+    <sup>2</sup>Independent Researcher &nbsp;&nbsp;
+    <sup>3</sup>Shanghai Jiao Tong University
+  </div>
+
+</header>
+
+<div class="wrap">
+
+  <section class="hero-wide">
+    <div class="hero">
+      <!-- src is set by script, so the frame loads in the right theme. -->
+      <iframe id="explorer"
+              data-src="results/html/bubblegym_10k_nonsphericity_axes_3d.html"
+              title="Interactive 3D view of the BubbleGym shape space"
+              scrolling="no"
+              loading="lazy"></iframe>
+      <!-- Phones get a tap-through: the explorer is a ~6 MB 3D document. -->
+      <a class="hero-touch" href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">
+        <span class="ht-ico">&#127760;</span>
+        <span class="ht-t">Open the interactive shape space</span>
+        <span class="ht-s">10,000 bubbles in 3D &middot; large page, best on a wider screen</span>
+      </a>
+      <noscript>
+        <div class="fallback">
+          <a href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">Open the interactive shape space &#8599;</a>
+        </div>
+      </noscript>
+    </div>
+    <figcaption>
+      <b>The BubbleGym shape space.</b> All 10,000 benchmark bubbles, positioned by
+      their nonsphericity descriptors and coloured by resonant frequency relative
+      to the Minnaert prediction for an equal-volume sphere. Drag to rotate.
+      <a href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">Open full view &#8599;</a>
+    </figcaption>
+  </section>
+
+  <section id="news">
+    <h2>News</h2>
+    <ul class="news">
+      <li>
+        <span class="when">Dec 2026</span>
+        <span class="what">To be presented at SIGGRAPH Asia 2026 in Kuala Lumpur, Malaysia.</span>
+      </li>
+      <li>
+        <span class="when">Sept 2026</span>
+        <span class="what">Code, trained models, and the 10k benchmark dataset are
+          released on <a href="https://github.com/zhehaoli1999/BubbleGym-OpenSource">GitHub</a>.</span>
+      </li>
+      <li>
+        <span class="when">Aug 2026</span>
+        <span class="what">BubbleGym is accepted to <b>SIGGRAPH Asia 2026</b>,
+          Conference Papers track.</span>
+      </li>
+    </ul>
+  </section>
+
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <p class="lead">
+      Water sounds are dominated by the acoustic radiation of entrained air
+      bubbles. The resonant frequency of a bubble depends critically on its size,
+      shape, and proximity to nearby boundaries, and is governed by the
+      capacitance of the bubble in the exterior mixed-boundary Laplace problem.
+      Existing bubble-frequency models face a difficult trade-off: spherical
+      approximations are efficient but inaccurate for deformed bubbles common in
+      fluid simulations (multiple semitones of pitch error), whereas boundary
+      element methods (BEM) accurately account for nonspherical geometry but are
+      prohibitively expensive. A practical method for bubble frequency estimation
+      is, therefore, highly desirable for the efficient authoring of
+      physics-based water sounds.
+    </p>
+    <p class="lead">
+      In this paper, we present <em>BubbleGym</em>, a framework for efficient,
+      shape-aware bubble source modeling. BubbleGym introduces a benchmark
+      dataset of 10k nonspherical bubble meshes with ground-truth resonant
+      frequencies. We first propose a moment-matching ellipsoidal proxy model
+      that improves efficiency but remains limited when handling strongly
+      deformed shapes, such as bent bubbles. We then adopt a learned, compact,
+      scale-invariant mapping from a curated set of bubble shape features to
+      resonant frequency. We have observed that the resulting model runs up to
+      1428&times; faster than BEM while maintaining a mean frequency error of
+      less than 1% (under 17 cents, below the perceptual JND for transient
+      sounds) on the test set.
+      Integrated into a complete water-sound synthesis pipeline, our method
+      enables high-fidelity audio for complex, bubble-rich scenes at a fraction
+      of the cost of direct BEM evaluation.
+    </p>
+
+    <div class="rescards">
+      <a href="https://doi.org/10.1145/3829340.3842193">
+        <span class="ico">&#128196;</span>
+        <span class="t">Paper</span>
+        <span class="s">ACM Digital Library</span>
+      </a>
+      <a href="https://doi.org/10.1145/3829340.3842193">
+        <span class="ico">&#128206;</span>
+        <span class="t">Supplement</span>
+        <span class="s">ACM Digital Library &middot; supplemental material</span>
+      </a>
+      <a href="https://github.com/zhehaoli1999/BubbleGym-OpenSource">
+        <span class="ico">&#128187;</span>
+        <span class="t">Code</span>
+        <span class="s">GitHub &middot; dataset and models</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="video">
+    <h2>Video</h2>
+    <div class="videoslot">
+      <span class="vs-ico">&#9654;</span>
+      <span>Supplemental video &mdash; not yet added</span>
+      <span class="vs-hint">Drop the file next to this page and swap this block for
+        the commented-out &lt;video&gt; element below.</span>
+    </div>
+    <!-- Ready for the file; set the name and delete the .videoslot block above.
+    <video class="scenevideo" controls preload="metadata" poster="POSTER.jpg">
+      <source src="VIDEO.mp4" type="video/mp4">
+    </video>
+    -->
+  </section>
+
+  <section id="demos">
+    <h2>Explore demos and code</h2>
+    <div class="demos">
+
+      <a class="demo" href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">
+        <span class="shot">
+          <img class="figshot"
+               src="results/experiments/fig03_nonsphericity_distribution/fig3_dark.png"
+               alt="Resonant frequency against nonsphericity for all 10,000 benchmark bubbles"
+               loading="lazy">
+        </span>
+        <span class="body">
+          <span class="t">Interactive shape space</span>
+          <span class="s">All 10,000 bubbles in 3D, coloured by frequency. Hover a
+            point to see its mesh.</span>
+        </span>
+      </a>
+
+      <a class="demo" href="dataset/bubble_gym/dataset_bubblegym_10k.csv">
+        <span class="shot">
+          <span class="numeral">
+            <span class="big">10,000</span>
+            <span class="sub">meshes &middot; 8 descriptors &middot; BEM ground truth</span>
+          </span>
+        </span>
+        <span class="body">
+          <span class="t">Benchmark dataset</span>
+          <span class="s">One CSV carrying every shape descriptor and reference
+            frequency, alongside the meshes and thumbnails.</span>
+        </span>
+      </a>
+
+      <a class="demo" href="https://github.com/zhehaoli1999/BubbleGym-OpenSource">
+        <span class="shot">
+<pre class="snippet"><code>git clone https://github.com/zhehaoli1999/\
+BubbleGym-OpenSource
+cd BubbleGym-OpenSource
+pip install -r requirements.txt
+
+# dataset/    BEM ground truth + meshes
+# python/bem/         BEM solver
+# python/shape_feature/    descriptors
+# python/freq_model/   models + weights</code></pre>
+        </span>
+        <span class="body">
+          <span class="t">Code and models</span>
+          <span class="s">BEM solver, shape descriptors, and every trained model
+            including the ablation variants.</span>
+        </span>
+      </a>
+
+      <a class="demo" href="results/experiments/fig01_bubble_theater/index.html">
+        <span class="shot">
+          <img class="photoshot"
+               src="results/experiments/fig01_bubble_theater/teaser_render_enright.jpg"
+               alt="A strongly deformed underwater bubble from the Enright test sequence"
+               loading="lazy">
+        </span>
+        <span class="body">
+          <span class="t">Bubble Theater</span>
+          <span class="s">Three procedural sequences &mdash; ellipsoid, curl noise,
+            Enright &mdash; with every frequency model against BEM.</span>
+        </span>
+      </a>
+
+      <a class="demo" href="results/experiments/fig07_single_rising_bubble/index.html">
+        <span class="shot">
+          <img class="photoshot"
+               src="results/experiments/fig07_single_rising_bubble/fig7-single-bubble.jpg"
+               alt="A rising bubble deforming from a sphere into a torus, with its frequency track"
+               loading="lazy">
+        </span>
+        <span class="body">
+          <span class="t">Single rising bubble</span>
+          <span class="s">A sphere deforming into a torus as it rises. Our model
+            tracks BEM; Minnaert stays fixed.</span>
+        </span>
+      </a>
+
+      <a class="demo" href="results/experiments/fig05_fruit_splash/index.html">
+        <span class="shot">
+          <img class="photoshot"
+               src="results/experiments/fig05_fruit_splash/fruits_final.jpg"
+               alt="Fruit falling into a water tank, entraining many nonspherical bubbles"
+               loading="lazy">
+        </span>
+        <span class="body">
+          <span class="t">Fruit Splash</span>
+          <span class="s">Five fruit dropped into a tank. 54,116 bubbles, each with
+            BEM, surrogate and Minnaert frequencies.</span>
+        </span>
+      </a>
+
+      <a class="demo" href="results/experiments/fig06_underwater_exhalation/index.html">
+        <span class="shot">
+          <img class="photoshot"
+               src="results/experiments/fig06_underwater_exhalation/exhale_final.jpg"
+               alt="An underwater character exhaling a cascading plume of bubbles"
+               loading="lazy">
+        </span>
+        <span class="body">
+          <span class="t">Underwater exhalation</span>
+          <span class="s">A character exhales underwater, producing large bubbles
+            that deform as they rise.</span>
+        </span>
+      </a>
+
+    </div>
+  </section>
+
+  <section id="bibtex">
+    <h2>BibTeX</h2>
+<pre><code>@inproceedings{li2026bubblegym,
+  author    = {Li, Zhehao and Wu, Kui and Li, Wei and James, Doug L.},
+  title     = {BubbleGym: A Practical Shape-to-Frequency Model for Acoustic Bubbles},
+  booktitle = {SIGGRAPH Asia 2026 Conference Papers (SA Conference Papers '26)},
+  year      = {2026},
+  location  = {Kuala Lumpur, Malaysia},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  doi       = {10.1145/3829340.3842193},
+  isbn      = {979-8-4007-2842-6}
+}</code></pre>
+  </section>
+
+  <section id="acknowledgments">
+    <h2>Acknowledgments</h2>
+    <p>
+      We thank the anonymous reviewers for their feedback, and Adobe and
+      Activision for their support. Houdini software was provided courtesy of
+      SideFX. This work was supported in part by ONR Grant N000142512024.
+      Zhehao Li acknowledges support from the Stanford School of Engineering
+      Fellowship. Wei Li acknowledges support from the Shanghai Pujiang Program
+      (25PJD058) and Shanghai Jiao Tong University startup funds.
+    </p>
+  </section>
+
+</div>
+
+<footer class="wrap">
+  Zhehao Li, Kui Wu, Wei Li, and Doug L. James. 2026.
+  BubbleGym: A Practical Shape-to-Frequency Model for Acoustic Bubbles.
+  <em>SIGGRAPH Asia 2026 Conference Papers</em>.
+  <a href="https://doi.org/10.1145/3829340.3842193">https://doi.org/10.1145/3829340.3842193</a>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('theme-toggle');
+  var icon = document.getElementById('theme-icon');
+  var label = document.getElementById('theme-label');
+  var frame = document.getElementById('explorer');
+  var media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+  /* The resolved theme: an explicit choice if one was made, otherwise the
+     system preference. The stylesheet follows the same rule. */
+  function current() {
+    var set = root.getAttribute('data-theme');
+    if (set === 'dark' || set === 'light') return set;
+    return (media && media.matches) ? 'dark' : 'light';
+  }
+
+  function paintButton() {
+    var dark = current() === 'dark';
+    /* The button offers the other mode, so it shows the one you'd switch to. */
+    icon.innerHTML = dark ? '&#9788;' : '&#9790;';
+    label.textContent = dark ? 'Light' : 'Dark';
+    btn.setAttribute('aria-pressed', String(dark));
+  }
+
+  function tellExplorer() {
+    if (!frame || !frame.contentWindow) return;
+    try {
+      frame.contentWindow.postMessage({ bubblegymTheme: current() }, '*');
+    } catch (e) { /* frame not ready yet; the load handler covers it */ }
+  }
+
+  /* Load the explorer already in the right theme rather than switching it
+     after a flash of the wrong one. */
+  /* Below the tap-through breakpoint the iframe is display:none, so giving
+     it a src would download ~6 MB that is never shown. */
+  var wide = !(window.matchMedia && window.matchMedia('(max-width:700px)').matches);
+  if (frame && wide) {
+    frame.src = frame.getAttribute('data-src') + '?theme=' + current();
+    frame.addEventListener('load', tellExplorer);
+  }
+
+  btn.addEventListener('click', function () {
+    var next = current() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('bubblegym-theme', next); } catch (e) {}
+    paintButton();
+    tellExplorer();
+  });
+
+  /* Follow the system while no explicit choice has been made. */
+  if (media && media.addEventListener) {
+    media.addEventListener('change', function () {
+      if (!root.getAttribute('data-theme')) { paintButton(); tellExplorer(); }
+    });
+  }
+
+  paintButton();
+})();
+</script>
+
+</body>
+</html>

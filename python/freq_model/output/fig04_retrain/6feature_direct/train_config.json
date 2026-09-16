@@ -1,0 +1,28 @@
+{
+  "dataset": "dataset\\bubble_gym\\dataset_bubblegym_10k.csv",
+  "output_dir": "python\\freq_model\\output\\fig04_retrain\\6feature_direct",
+  "features": 6,
+  "baseline": "none",
+  "holdout_mesh_ids": "results\\experiments\\fig04_per_bin_model_error\\selected_rows.csv",
+  "batch_size": 64,
+  "epochs": 400,
+  "lr": 0.003,
+  "weight_decay": 0.0001,
+  "patience": 40,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "seed": 42,
+  "num_workers": 0,
+  "device": "cuda",
+  "baseline_kind": "none_log_direct",
+  "baseline_col": "",
+  "feature_cols": [
+    "non_sph_va",
+    "non_sph_vm",
+    "non_sph_w",
+    "eta_V",
+    "eta_A",
+    "eta_M"
+  ],
+  "model_checkpoint": "bubble_freq_net_best.pt"
+}
