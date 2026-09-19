@@ -15,4 +15,15 @@ The accuracy and parameter columns come from the fitted models in
 `export_config.json` carries the numbers the paper prints. Table 2 was refit on
 the 10k benchmark, so any older ledger you find reports different accuracy.
 
+`baseline_metrics.json` (and its `baseline_metrics.md` rendering) is the
+regressors' ledger at those exported settings: test MAPE, RMSE(log f) and max
+APE for each of the four baselines and the MLP, plus the hyperparameters. Four
+scripts read it for those settings, and `export_config.json` names it as its
+source. Regenerate it with
+
+```bash
+python python/freq_model/regression/baseline_regressors_8feat.py \
+    --hparams-json python/freq_model/output/output_baseline_regressors_8feature/export_config.json
+```
+
 The Fruit-Splash scene MAPE and max columns have no shipped source.

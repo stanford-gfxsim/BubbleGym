@@ -59,8 +59,6 @@ def main() -> int:
 
     blob = json.loads(args.timings.read_text())
     res = blob["results"]
-    batch = blob.get("protocol", {}).get("batch", "?")
-    passes = blob.get("protocol", {}).get("passes", "?")
 
     order = [v for v in ORDER if v in res] or list(res)
     fwd = np.array([res[v]["forward_us_per_bubble_mean"] for v in order])

@@ -125,9 +125,65 @@ class TestSphereBem(unittest.TestCase):
         self.assertAlmostEqual(float(out["v0"]), 1.0, delta=1e-9)
         # b = (K - 1/2 I) 1 must be the constant -1 on a sound closed surface.
         self.assertLess(float(out["rhs_orientation_residual"]), 1e-4)
+        self.assertTrue(out["gmres_converged"])
         self.assertAlmostEqual(
             float(out["capacitance"]) / R_UNIT_VOLUME, 1.0, delta=1e-4
         )
+
+
+@unittest.skipUnless(_HAS_BEMPP, "BEM solve needs bempp-cl")
+class TestGmresNonConvergence(unittest.TestCase):
+    """An unconverged solve must never return silently."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from python.bem._threading import limit_threads
+        from python.shape_feature.mesh_utils import load_obj_mesh
+
+        limit_threads(2)
+        v, f = load_obj_mesh(SPHERE_MESH)
+        # A sphere is the wrong test mesh here: the constant right-hand side is
+        # an eigenvector of the single-layer operator on a sphere, so GMRES
+        # converges in one step whatever the budget. Stretch it into an
+        # ellipsoid so the Krylov space genuinely needs iterations.
+        cls.mesh = (v * [2.0, 1.0, 0.5], f)
+        # Two inner iterations cannot reach 1e-14 on this system.
+        cls.starved = dict(
+            gmres_tol=1e-14, gmres_maxiter=1, gmres_restart=2,
+            quadrature_regular=2, quadrature_singular=2,
+        )
+
+    def _solve(self, **kw):
+        from python.bem.compute_freq_bempp_galerkin import (
+            solve_minnaert_frequency_galerkin,
+        )
+
+        return solve_minnaert_frequency_galerkin(self.mesh, **self.starved, **kw)
+
+    def test_raises_by_default(self) -> None:
+        from python.bem.compute_freq_bempp_galerkin import GmresNotConvergedError
+
+        with self.assertRaises(GmresNotConvergedError) as ctx:
+            self._solve()
+        self.assertFalse(ctx.exception.result["gmres_converged"])
+        self.assertNotEqual(ctx.exception.result["gmres_info"], 0)
+
+    def test_warn_returns_flagged_result(self) -> None:
+        from python.bem.compute_freq_bempp_galerkin import GmresNotConvergedWarning
+
+        with self.assertWarns(GmresNotConvergedWarning):
+            out = self._solve(on_nonconvergence="warn")
+        self.assertFalse(out["gmres_converged"])
+
+    def test_ignore_is_silent_but_still_flagged(self) -> None:
+        import warnings
+
+        from python.bem.compute_freq_bempp_galerkin import GmresNotConvergedWarning
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", GmresNotConvergedWarning)
+            out = self._solve(on_nonconvergence="ignore")
+        self.assertFalse(out["gmres_converged"])
 
 
 if __name__ == "__main__":

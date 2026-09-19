@@ -6,6 +6,10 @@ import numpy as np
 # import them from this module.
 from .physics import GAMMA_AIR, P0_ATM, RHO_WATER
 
+#: Minnaert's f*R in Hz*m, i.e. sqrt(3 * gamma * p0 / rho) / (2 * pi), evaluated
+#: at the physics.py defaults. Divide by a radius in metres to get Hz
+#: (``MINNAERT_CONSTANT / radius``). It is derived, not fitted: it matches that
+#: expression to machine precision, and changes if the defaults ever do.
 MINNAERT_CONSTANT = 3.283243423687599
 
 

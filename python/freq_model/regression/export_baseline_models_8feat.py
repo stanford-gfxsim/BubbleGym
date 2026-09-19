@@ -3,7 +3,7 @@
 Companion to ``baseline_regressors_8feat.py``: re-fits linear / poly2 / poly3 /
 RBF-kernel-ridge on the paper's train split (seed 42, asserted against
 ``split.json``) using the validation-selected hyperparameters recorded in
-``results/baseline_regressors_8feat_bubblegym_10k/baseline_metrics.json`` -- no
+``results/experiments/table02_regressor_comparison/baseline_metrics.json`` -- no
 grid search is repeated, so this runs in well under a minute.
 
 Artifacts land in ``python/freq_model/output/output_baseline_regressors_8feature/``
@@ -67,7 +67,7 @@ from freq_model.NN.fit_shape_freq_model import (  # noqa: E402
 )
 
 METRICS_JSON = (
-    _REPO_ROOT / "results" / "baseline_regressors_8feat_bubblegym_10k" / "baseline_metrics.json"
+    _REPO_ROOT / "results" / "experiments" / "table02_regressor_comparison" / "baseline_metrics.json"
 )
 MODEL_DIR = (
     _FREQ_MODEL_DIR / "output" / "output_8feature_direct_bubblegym_10k"

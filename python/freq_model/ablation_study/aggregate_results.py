@@ -69,7 +69,7 @@ def _row_from_variant(vdir: Path) -> dict[str, object]:
         "testset_rmse_log": tm.get("rmse_log", ""),
         "testset_mape": tm.get("mape", ""),
         "testset_max_ape": tm.get("max_ape", ""),
-        "testset_mape_tim2016": tim.get("mape", ""),
+        "testset_mape_langlois2016": tim.get("mape", ""),
         "testset_mape_lbm": lbm.get("mape", ""),
     }
 

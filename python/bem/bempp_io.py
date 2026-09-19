@@ -55,7 +55,7 @@ def _signed_volume(vertices: np.ndarray, faces: np.ndarray) -> float:
 
 
 def _compute_volume(vertices: np.ndarray, faces: np.ndarray) -> float:
-    """Signed-tet volume magnitude, matching the C++ implementation."""
+    """Magnitude of the signed-tetrahedron volume of a closed mesh."""
     return abs(_signed_volume(vertices, faces))
 
 
@@ -184,6 +184,7 @@ def solve_minnaert_frequency_mesh(
     gamma: float = 1.4,
     p0: float = 101325.0,
     rho: float = 1000.0,
+    on_nonconvergence: str = "raise",
     verbose: bool = False,
 ) -> dict:
     """
@@ -194,10 +195,14 @@ def solve_minnaert_frequency_mesh(
     with **P1-DP0** (conforming P1 Dirichlet / DP0 Neumann) and GMRES with mass
     preconditioning.
 
+    ``on_nonconvergence`` is forwarded to the solver: by default an unconverged
+    GMRES raises ``GmresNotConvergedError`` rather than returning its frequency.
+
     Returns
     -------
     dict with keys: frequency, capacitance, capacitance_raw, v0, gmres_info,
-    n_panels, method, plus galerkin-specific keys forwarded when present.
+    gmres_converged, n_panels, method, plus galerkin-specific keys forwarded
+    when present.
     """
     from .compute_freq_bempp_galerkin import solve_minnaert_frequency_galerkin
 
@@ -221,6 +226,7 @@ def solve_minnaert_frequency_mesh(
         p0=p0,
         rho=rho,
         skip_volume_rescale=True,
+        on_nonconvergence=on_nonconvergence,
         verbose=verbose,
     )
 
@@ -230,6 +236,7 @@ def solve_minnaert_frequency_mesh(
         "capacitance_raw": float(out["capacitance_raw"]),
         "v0": float(out["v0"]),
         "gmres_info": int(out.get("gmres_info", 0)),
+        "gmres_converged": bool(out.get("gmres_converged", True)),
         "n_panels": int(out.get("n_triangles", faces.shape[0])),
         "method": "galerkin_p1_dp0",
         "galerkin_trial_pair": out.get("trial_pair", "P1-DP0"),
@@ -271,17 +278,16 @@ def solve_minnaert_frequency(
         if verbose:
             print(f"  Rescaled mesh to unit volume (scale = {scale})")
 
-    # Recompute volume after scaling (matches C++ test behavior)
+    # Recompute volume after scaling, so the solve sees the rescaled mesh.
     out = solve_minnaert_frequency_mesh(
         vertices, faces, gamma=gamma, p0=p0, rho=rho, verbose=False
     )
     numerical_freq = out["frequency"]
     c_val = out["capacitance_raw"]
     v0 = out["v0"]
+    # Convergence is enforced inside the solver, which raises on a non-zero
+    # info, so reaching this line means GMRES converged.
     info = out["gmres_info"]
-
-    if info not in (0, None) and verbose:
-        print(f"GMRES returned info={info} (0 means converged).")
 
     if verbose:
         print("\nResults:")
@@ -293,7 +299,7 @@ def solve_minnaert_frequency(
     if verbose:
         print(f"  Solved Minnaert frequency f = {numerical_freq} Hz")
 
-        # Same analytical comparison as C++ test (unit-volume sphere)
+        # Compare against the analytical unit-volume sphere.
         volume = 1.0
         radius = (3.0 * volume / (4.0 * math.pi)) ** (1.0 / 3.0)
         analytical_freq = _minnaert_constant() / radius

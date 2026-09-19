@@ -162,7 +162,10 @@ def _apply_success(df: pd.DataFrame, row_idx: int, out: dict) -> None:
     df.at[row_idx, "bem_galerkin_n_triangles"] = str(int(out["n_triangles"]))
     wall_time = float(out.get("wall_time_assemble_s", 0.0)) + float(out.get("wall_time_solve_s", 0.0))
     df.at[row_idx, "bem_galerkin_wall_time_s"] = f"{wall_time:.6g}"
-    df.at[row_idx, "bem_galerkin_status"] = "ok"
+    # Under --on-nonconvergence warn/ignore an unconverged solve still lands
+    # here; say so in the status rather than filing it as a clean "ok".
+    converged = bool(out.get("gmres_converged", int(out["gmres_info"]) == 0))
+    df.at[row_idx, "bem_galerkin_status"] = "ok" if converged else "ok (gmres not converged)"
 
 
 def _apply_failure(df: pd.DataFrame, row_idx: int, exc: Exception) -> None:
@@ -248,6 +251,7 @@ def run(args: argparse.Namespace) -> None:
                 gamma=args.gamma,
                 p0=args.p0,
                 rho=args.rho,
+                on_nonconvergence=args.on_nonconvergence,
                 verbose=args.verbose_solver,
             )
             freq = float(out["frequency"])
@@ -318,6 +322,12 @@ def main() -> None:
     parser.add_argument("--gmres-tol", type=float, default=1e-12)
     parser.add_argument("--gmres-maxiter", type=int, default=4000)
     parser.add_argument("--gmres-restart", type=int, default=300)
+    parser.add_argument(
+        "--on-nonconvergence", default="raise", choices=["raise", "warn", "ignore"],
+        help="If GMRES stops short of --gmres-tol. 'raise' (default) records the "
+             "row as failed with a GmresNotConvergedError status, so no "
+             "unconverged frequency reaches the CSV; 'warn' and 'ignore' keep it.",
+    )
     parser.add_argument("--quad-regular", type=int, default=6)
     parser.add_argument("--quad-singular", type=int, default=6)
     parser.add_argument("--gamma", type=float, default=1.4)

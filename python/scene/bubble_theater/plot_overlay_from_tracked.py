@@ -267,14 +267,6 @@ def main() -> int:
     title_extras = args.title_extras.strip()
     if not title_extras:
         bits: list[str] = []
-        if radii:
-            r_vals = sorted(set(round(v, 6) for v in radii.values()))
-            # if len(r_vals) == 1:
-            #     bits.append(f"R_eq={r_vals[0]:.4f} m")
-            # else:
-            #     bits.append(
-            #         "R_eq in {" + ", ".join(f"{v:.4f}" for v in r_vals) + "} m"
-            #     )
         bits.append(f"source={rd.name}")
         title_extras = ", ".join(bits)
 

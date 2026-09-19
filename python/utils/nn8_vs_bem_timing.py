@@ -44,7 +44,7 @@ os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
 # Drop %CONDA_PREFIX%\Library\mingw-w64\bin from PATH before importing torch:
 # under `conda run` those MinGW DLLs shadow torch/lib/shm.dll and raise
-# "OSError: [WinError 127]" (see python/win_torch_dll_path.py).
+# "OSError: [WinError 127]" when torch loads.
 if os.name == "nt":
     _cp = os.environ.get("CONDA_PREFIX")
     if _cp:
@@ -58,7 +58,7 @@ if os.name == "nt":
         )
 
 # Import torch BEFORE numpy: on this Windows stack importing NumPy (MKL) first
-# also triggers the shm.dll WinError 127 (see python/win_torch_dll_path.py).
+# also triggers the same shm.dll WinError 127, so the order below matters.
 import torch as _torch  # noqa: E402, F401
 import numpy as np  # noqa: E402
 

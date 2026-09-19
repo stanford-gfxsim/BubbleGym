@@ -29,7 +29,12 @@ catastrophically (~1e237) on out-of-distribution scene meshes.
 RUN (repo root; needs $env:KMP_DUPLICATE_LIB_OK = "TRUE" on Windows):
     python python/freq_model/regression/baseline_regressors_8feat.py
 
-Writes results/baseline_regressors_8feat_bubblegym_10k/{baseline_metrics.json,
+The shipped baseline_metrics.json is made at the exported models' settings,
+because the poly-3 ridge search is a near-tie whose winner varies by machine:
+    python python/freq_model/regression/baseline_regressors_8feat.py \
+        --hparams-json python/freq_model/output/output_baseline_regressors_8feature/export_config.json
+
+Writes results/experiments/table02_regressor_comparison/{baseline_metrics.json,
 baseline_metrics.md}.
 """
 
@@ -90,7 +95,7 @@ MODEL_DIR = _FREQ_MODEL_DIR / "output" / "output_8feature_direct_bubblegym_10k"
 SPLIT_JSON = MODEL_DIR / "split.json"
 METRICS_JSON = MODEL_DIR / "metrics.json"
 
-OUT_DIR = _REPO_ROOT / "results" / "baseline_regressors_8feat_bubblegym_10k"
+OUT_DIR = _REPO_ROOT / "results" / "experiments" / "table02_regressor_comparison"
 
 DEFAULT_DATASET = _REPO_ROOT / "dataset" / "bubble_gym" / "dataset_bubblegym_10k.csv"
 
@@ -183,6 +188,14 @@ def fit_eval(
     return out
 
 
+def _repo_relative(path: Path) -> str:
+    """``path`` relative to the repository root when it lies inside it."""
+    try:
+        return path.resolve().relative_to(_REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
@@ -199,7 +212,19 @@ def main() -> None:
     parser.add_argument(
         "--clamp-to-minnaert", action="store_true", help=CLAMP_FLAG_HELP,
     )
+    parser.add_argument(
+        "--hparams-json", type=Path, default=None,
+        help="Skip the validation search and fit each model at the hyperparameters "
+             "recorded in this JSON (a 'models' dict of {name: {'hparams': ...}}, "
+             "e.g. the shipped export_config.json). The poly-3 ridge search is a "
+             "near-tie between 1e-5 and 1e-6 whose winner can change with the BLAS "
+             "build, so this is how the shipped baseline_metrics.json is made.",
+    )
     args = parser.parse_args()
+    fixed = None
+    if args.hparams_json is not None:
+        with args.hparams_json.open("r", encoding="utf-8") as f:
+            fixed = {k: v["hparams"] for k, v in json.load(f)["models"].items()}
     clamp_bounds = minnaert_log_clamp_bounds() if args.clamp_to_minnaert else None
     if clamp_bounds is not None:
         print(
@@ -208,6 +233,8 @@ def main() -> None:
         )
     model_dir = args.model_dir.resolve()
     split_json = model_dir / "split.json"
+    # Recorded repo-relative so the shipped JSON names no local machine.
+    split_json_shown = _repo_relative(split_json)
     metrics_json = model_dir / "metrics.json"
 
     x_raw, y_raw, log_fs_raw, df_used = load_xy(args.dataset.resolve())
@@ -255,7 +282,8 @@ def main() -> None:
         name = f"poly{degree}"
         t0 = time.perf_counter()
         best = None
-        for alpha in RIDGE_ALPHAS:
+        alphas = [float(fixed[name]["ridge_alpha"])] if fixed else RIDGE_ALPHAS
+        for alpha in alphas:
             reg = LinearRegression() if alpha == 0.0 else Ridge(alpha=alpha)
             model = make_pipeline(
                 PolynomialFeatures(degree=degree, include_bias=False), reg
@@ -285,8 +313,10 @@ def main() -> None:
     # --- rbf: kernel ridge, (alpha, gamma) tuned on val --------------------
     t0 = time.perf_counter()
     best = None
-    for gamma in KRR_GAMMAS:
-        for alpha in KRR_ALPHAS:
+    gammas = [float(fixed["rbf"]["gamma"])] if fixed else KRR_GAMMAS
+    krr_alphas = [float(fixed["rbf"]["alpha"])] if fixed else KRR_ALPHAS
+    for gamma in gammas:
+        for alpha in krr_alphas:
             model = KernelRidge(kernel="rbf", alpha=float(alpha), gamma=float(gamma))
             model.fit(x_train, y_train)
             val_mape = metrics_from_log(
@@ -316,16 +346,20 @@ def main() -> None:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     payload = {
-        "dataset": str(args.dataset),
+        "dataset": _repo_relative(args.dataset),
         "seed": args.seed,
         "val_ratio": args.val_ratio,
         "test_ratio": args.test_ratio,
         "feature_cols": FEATURE_COLS,
-        "split_check": f"test partition identical to {split_json} (n_test={n_test})",
+        "split_check": f"test partition identical to {split_json_shown} (n_test={n_test})",
         "n_train": int(len(split.x_train)),
         "n_val": int(len(split.x_val)),
         "n_test": int(len(split.x_test)),
-        "tuning": "hyperparameters selected by validation MAPE; test untouched",
+        "tuning": (
+            f"hyperparameters fixed from {args.hparams_json.as_posix()}; no search"
+            if fixed
+            else "hyperparameters selected by validation MAPE; test untouched"
+        ),
         "minnaert_clamp": (
             {
                 "factor": MINNAERT_CLAMP_FACTOR,
@@ -352,8 +386,12 @@ def main() -> None:
         "# Non-neural baselines on the 8-feature frequency task",
         "",
         f"Same features, split (seed {args.seed}, 70/15/15, verified against "
-        f"`{split_json}`), target log(f_BEM), and MAPE formula as the paper's MLP. "
-        "Hyperparameters tuned on the validation split only."
+        f"`{split_json_shown}`), target log(f_BEM), and MAPE formula as the paper's MLP. "
+        + (
+            f"Hyperparameters fixed from `{args.hparams_json.as_posix()}`."
+            if fixed
+            else "Hyperparameters tuned on the validation split only."
+        )
         + (
             f" Predictions clamped to [f_Minnaert, {MINNAERT_CLAMP_FACTOR} x f_Minnaert]."
             if clamp_bounds is not None

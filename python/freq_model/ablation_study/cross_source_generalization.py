@@ -196,7 +196,7 @@ def main() -> int:
         )
     )
     parser.add_argument("--train-source", type=str, default="VOF",
-                        help="Solver whose bubbles are trained on (default: VOF / Tim2016).")
+                        help="Solver whose bubbles are trained on (default: VOF / Langlois2016).")
     parser.add_argument("--test-source", type=str, default="LBM",
                         help="Solver held out entirely (default: LBM).")
     parser.add_argument(

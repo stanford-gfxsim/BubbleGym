@@ -1,17 +1,20 @@
 """Write ``dataset/fruit_splash/trackedBubInfo_BEM.txt`` from the all-bubbles BEM run.
 
-The Table 1 all-bubbles sweep (``nn8_vs_bem_all_bubbles_chunked.py``) solved a
-P1-DP0 Galerkin BEM on every >100-vertex fruit bubble mesh (<= 5k verts) and
-recorded the unit-volume Minnaert frequency per (bub_id, frame) in
-``results/experiments/table01_timing_across_scenes/all_bubbles/fruits/fruits_all_rows.csv``.
+**Not re-runnable from the repository alone.** It documents how the shipped
+``trackedBubInfo_BEM.txt`` was produced. Its input is the per-row CSV of the
+Table 1 all-bubbles sweep (``nn8_vs_bem_all_bubbles_chunked.py``), which solved
+a P1-DP0 Galerkin BEM on every >100-vertex fruit bubble mesh (<= 5k verts) and
+recorded the unit-volume Minnaert frequency per (bub_id, frame). That CSV runs
+to hundreds of MB and does not ship; only its summary does, under
+``results/experiments/table01_timing_across_scenes/all_bubbles/fruit08/``.
+Pass ``--rows-csv`` to point it at a sweep you have run yourself.
 
 This script maps those frequencies onto the fruit trackedBubInfo, mirroring the
-NN pipeline's conventions exactly (same nearest-frame snap and the same
+NN pipeline's conventions exactly: the same nearest-frame snap and the same
 ``f_real = f_unit * V**(-1/3)`` radius rescale as
-``write_trackedbubinfo_nn.py`` step 7, and the Phase-C structure
-of ``write_lbm_key_trackedbubinfo_bem_decimated.py``):
+``write_trackedbubinfo_nn.py`` step 7.
 
-* base file = ``trackedBubInfo_NN.txt`` (the whitelisted bubble cloud used by
+* base file = ``trackedBubInfo_NN.txt`` (the selected bubble cloud used by
   the published NN / Minnaert renders), frequencies overwritten per sample line
   by the nearest BEM mesh frame of the same bubble;
 * sample lines whose bubble has no BEM frame keep their NN frequency

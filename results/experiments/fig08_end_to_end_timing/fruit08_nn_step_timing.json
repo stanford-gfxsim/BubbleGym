@@ -1,0 +1,18 @@
+{
+  "label": "fruit08",
+  "rows_csv": "fruit08_all_rows.csv",
+  "n_meshes": 75686,
+  "n_feature_failures": 80,
+  "n_scored": 75606,
+  "workers": 16,
+  "chunksize": 64,
+  "t_load_and_features_s": 51.224,
+  "t_batched_inference_s": 1.268,
+  "t_total_s": 52.491,
+  "ms_per_mesh": 0.6935,
+  "check_max_rel_diff_vs_sweep_nn": 1.1920929681415058e-07,
+  "cpu": "Intel(R) Core(TM) i9-14900K",
+  "gpu": "NVIDIA GeForce RTX 5090",
+  "inference_device": "cpu (production path)",
+  "file_cache": "warmed before timing"
+}

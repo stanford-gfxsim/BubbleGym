@@ -43,5 +43,5 @@
       "test_mape": 0.06461601201637084
     }
   },
-  "source_metrics": "results\\baseline_regressors_8feat_bubblegym_10k\\baseline_metrics.json"
+  "source_metrics": "results/experiments/table02_regressor_comparison/baseline_metrics.json"
 }

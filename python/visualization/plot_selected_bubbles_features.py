@@ -411,7 +411,7 @@ def main() -> None:
     parser.add_argument(
         "--thumbnail-dir",
         type=Path,
-        default=Path("dataset/2016tim/thumbnail_transparent"),
+        default=Path("dataset/langlois2016/thumbnail_transparent"),
         help="Cache directory for re-rendered transparent thumbnails (color-keyed).",
     )
     parser.add_argument(

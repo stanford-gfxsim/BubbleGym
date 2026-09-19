@@ -227,8 +227,11 @@ def main() -> None:
         default="random",
         help=(
             "random: uniform sample of N. dendritic: stratify on the chull "
-            "dendritic axis (max(eta_A-1,0)+max(1-eta_V,0)-max(eta_M-1,0)) so the "
-            "selected bubbles span low to high dendritic signal."
+            "dendritic score (max(eta_A-1,0)+max(1-eta_V,0)-max(eta_M-1,0)) so the "
+            "selected bubbles span its full range. Despite the name the score "
+            "does not rise with filament-like shape: on the 10k benchmark the "
+            "eta_M term dominates and the most deformed bubbles score lowest "
+            "(see stratified_eval_model.non_sphericity_chull_dendritic)."
         ),
     )
     parser.add_argument(

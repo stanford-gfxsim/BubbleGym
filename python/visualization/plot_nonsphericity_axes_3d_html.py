@@ -156,7 +156,11 @@ def load_lbm_hero_overlay(path: Path) -> dict[str, np.ndarray | list[str]]:
     required = ["mesh_file", "f_bem_hz", "Phi_VA", "Phi_VM", "Phi_W_vertex"]
     missing = [c for c in required if c not in df.columns]
     if missing:
-        raise ValueError(f"{path} missing columns: {missing}. Run compare_models_vs_bem_lbm_hero_bub1.py first.")
+        raise ValueError(
+            f"{path} missing columns: {missing}. This overlay is optional and "
+            "no such CSV ships; supply one with a row per mesh carrying "
+            f"{required}, or omit --lbm-hero-csv."
+        )
 
     phi_va = numeric_column(df, "Phi_VA")
     phi_vm = numeric_column(df, "Phi_VM")
@@ -540,6 +544,14 @@ def lbm_mesh_thumbnail_sources(
     return sources
 
 
+# The opening view. Shared by the layout and by the panel's reset button, so
+# "default" means one thing rather than two that can drift apart.
+DEFAULT_CAMERA = {
+    "eye": {"x": 1.65, "y": 1.65, "z": 1.1},
+    "center": {"x": 0.0, "y": 0.0, "z": 0.0},
+    "up": {"x": 0.0, "y": 0.0, "z": 1.0},
+}
+
 GROUP_ACCENTS = {
     "VOF": "#2f6fb5",
     "LBM": "#c2542f",
@@ -553,6 +565,8 @@ def control_panel_script(
     feature_titles: list[str],
     n_main_traces: int,
     default_xyz: tuple[int, int, int] = (2, 3, 4),
+    feature_ranges: list[list[float]] | None = None,
+    default_camera: dict | None = None,
 ) -> str:
     """One draggable window holding every control.
 
@@ -579,6 +593,8 @@ def control_panel_script(
             "titles": feature_titles,
             "traces": list(range(n_main_traces)),
             "default": list(default_xyz),
+            "ranges": feature_ranges or [],
+            "camera": default_camera or {},
             "presets": [
                 {"name": "Wadell  (\u03a6)", "xyz": [2, 3, 4]},
                 {"name": "Convex hull  (\u03b7)", "xyz": [5, 6, 7]},
@@ -616,7 +632,57 @@ def control_panel_script(
     dark:  { paper: '#0b1220', font: '#e2e8f0', grid: '#2c3a52',
              line: '#3b4a63', back: 'rgba(0,0,0,0)' }
   };
-  let dark = false;
+  /* The page embeds this file in an iframe. Same origin, so the project page's
+     saved choice is readable here, and a write from either document raises a
+     `storage` event in the other -- which is what keeps the two in step while
+     the reader toggles. With no saved choice, follow the system. */
+  const THEME_KEY = 'bubblegym-theme';
+  const prefersDark = window.matchMedia
+    ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function savedTheme() {
+    try {
+      const v = localStorage.getItem(THEME_KEY);
+      return (v === 'dark' || v === 'light') ? v : null;
+    } catch (e) { return null; }   // private mode
+  }
+  // The project page embeds this file and states the theme twice: once as
+  // ?theme= on the src so the first paint is already right, then by postMessage
+  // whenever the reader toggles. An embedding page's instruction outranks
+  // anything stored, until someone uses the button in here.
+  function queryTheme() {
+    const m = /[?&]theme=(dark|light)/.exec(window.location.search || '');
+    return m ? m[1] : null;
+  }
+  let forced = queryTheme();
+  function resolvedDark() {
+    if (forced) return forced === 'dark';
+    const v = savedTheme();
+    if (v) return v === 'dark';
+    return !!(prefersDark && prefersDark.matches);
+  }
+  let dark = resolvedDark();
+
+  window.addEventListener('message', function (e) {
+    const t = e.data && e.data.bubblegymTheme;
+    if (t !== 'dark' && t !== 'light') return;
+    forced = t;
+    if (t === (dark ? 'dark' : 'light')) return;
+    dark = t === 'dark';
+    applyTheme();
+  });
+
+  window.addEventListener('storage', function (e) {
+    if (e.key && e.key !== THEME_KEY) return;
+    const next = resolvedDark();
+    if (next !== dark) { dark = next; applyTheme(); }
+  });
+  if (prefersDark && prefersDark.addEventListener) {
+    prefersDark.addEventListener('change', function () {
+      if (savedTheme()) return;    // an explicit choice wins
+      dark = resolvedDark();
+      applyTheme();
+    });
+  }
 
   function applyTheme() {
     const t = THEMES[dark ? 'dark' : 'light'];
@@ -639,7 +705,11 @@ def control_panel_script(
     Plotly.relayout(plot, up);
     Plotly.restyle(plot, { 'marker.colorbar.tickfont.color': s.font,
                            'marker.colorbar.title.font.color': s.font }, [0]);
-    themeBtn.textContent = dark ? '\u2600  Light mode' : '\u263e  Dark mode';
+    // The button is built further down, so a theme message arriving early would
+    // otherwise throw here and leave the theme unapplied.
+    try {
+      themeBtn.textContent = dark ? '\u2600  Light mode' : '\u263e  Dark mode';
+    } catch (e) { /* not built yet; the initial applyTheme() call repaints it */ }
   }
 
   /* ---------------------------------------------------------------- window */
@@ -674,7 +744,14 @@ def control_panel_script(
   head.appendChild(grip); head.appendChild(title); head.appendChild(fold);
 
   const bodyEl = document.createElement('div');
-  bodyEl.style.cssText = 'padding:11px 12px 12px 12px;';
+  // Capped and scrollable: in a short frame the panel would otherwise run off
+  // the bottom and the last controls could not be reached at all.
+  bodyEl.style.cssText = [
+    'padding:11px 12px 12px 12px',
+    'max-height:calc(100vh - 96px)',
+    'overflow-y:auto',
+    'overscroll-behavior:contain'
+  ].join(';');
   win.appendChild(head); win.appendChild(bodyEl);
 
   let folded = false;
@@ -797,11 +874,21 @@ def control_panel_script(
       upd.x.push(cols[0]); upd.y.push(cols[1]); upd.z.push(cols[2]);
     });
     Plotly.restyle(plot, upd, PANEL_CFG.traces);
-    Plotly.relayout(plot, {
+    const lay = {
       'scene.xaxis.title.text': PANEL_CFG.titles[sel[0]],
       'scene.yaxis.title.text': PANEL_CFG.titles[sel[1]],
       'scene.zaxis.title.text': PANEL_CFG.titles[sel[2]]
+    };
+    // Re-pin the range for whichever descriptor now sits on each axis. Plotly
+    // would otherwise fall back to autorange and resize the box.
+    const R = PANEL_CFG.ranges || [];
+    ['x', 'y', 'z'].forEach(function (a, k) {
+      if (R[sel[k]]) {
+        lay['scene.' + a + 'axis.range'] = R[sel[k]].slice();
+        lay['scene.' + a + 'axis.autorange'] = false;
+      }
     });
+    Plotly.relayout(plot, lay);
     selects.forEach(function (s, k) { s.value = String(sel[k]); });
   }
 
@@ -823,6 +910,36 @@ def control_panel_script(
 
   /* ------------------------------------------------------------- display */
   bodyEl.appendChild(section('Display'));
+
+  /* Orbiting and zooming move the camera, and there is no way back by hand.
+     This restores the opening view without touching the descriptor choice, so
+     you keep the axes you picked and only lose the tumbling. */
+  const resetBtn = document.createElement('button');
+  resetBtn.type = 'button';
+  resetBtn.textContent = '↺  Reset view';
+  resetBtn.style.cssText = [
+    'display:block', 'width:100%', 'padding:6px 9px', 'margin-bottom:6px',
+    'cursor:pointer', 'border-radius:8px', 'font:12px inherit',
+    'border:1px solid var(--bg-border)', 'background:var(--bg-input)',
+    'color:var(--bg-text)', 'transition:all .15s'
+  ].join(';');
+  resetBtn.addEventListener('click', function () {
+    const lay = { 'scene.aspectmode': 'cube' };
+    if (PANEL_CFG.camera && PANEL_CFG.camera.eye) {
+      lay['scene.camera'] = JSON.parse(JSON.stringify(PANEL_CFG.camera));
+    }
+    // A zoom out in gl3d can leave the ranges loose, so re-pin them here too.
+    const R = PANEL_CFG.ranges || [];
+    ['x', 'y', 'z'].forEach(function (a, k) {
+      if (R[sel[k]]) {
+        lay['scene.' + a + 'axis.range'] = R[sel[k]].slice();
+        lay['scene.' + a + 'axis.autorange'] = false;
+      }
+    });
+    Plotly.relayout(plot, lay);
+  });
+  bodyEl.appendChild(resetBtn);
+
   const themeBtn = document.createElement('button');
   themeBtn.type = 'button';
   themeBtn.style.cssText = [
@@ -831,8 +948,102 @@ def control_panel_script(
     'border:1px solid var(--bg-border)', 'background:var(--bg-input)',
     'color:var(--bg-text)', 'transition:all .15s'
   ].join(';');
-  themeBtn.addEventListener('click', function () { dark = !dark; applyTheme(); });
+  themeBtn.addEventListener('click', function () {
+    dark = !dark;
+    // A choice made in here outranks what the embedding page asked for, and is
+    // written to the shared key so a later load of either document agrees.
+    forced = dark ? 'dark' : 'light';
+    try { localStorage.setItem(THEME_KEY, forced); } catch (e) {}
+    applyTheme();
+  });
   bodyEl.appendChild(themeBtn);
+
+  /* Colour by frequency ratio (the default) or flat by source. Colouring by
+     source is what makes a VOF/LBM comparison legible: with the rainbow scale
+     on, the two clouds are indistinguishable where they overlap. */
+  const colourBtn = document.createElement('button');
+  colourBtn.type = 'button';
+  colourBtn.style.cssText = themeBtn.style.cssText;
+  let byGroup = false;
+  const freqColours = {};   // trace index -> the original per-point colours
+  function traceAccent(ti) {
+    for (let i = 0; i < PANEL_CFG.groups.length; i++)
+      if (PANEL_CFG.groups[i].traces.indexOf(ti) !== -1)
+        return PANEL_CFG.groups[i].accent;
+    return '#4a5568';
+  }
+  function applyColour() {
+    PANEL_CFG.traces.forEach(function (ti) {
+      const m = plot.data[ti] && plot.data[ti].marker;
+      if (!m) return;
+      if (!(ti in freqColours)) freqColours[ti] = m.color;
+      // Detaching from the shared coloraxis is what lets a flat accent colour
+      // take effect; while attached, marker.color is read through the scale.
+      Plotly.restyle(plot, {
+        'marker.color': [byGroup ? traceAccent(ti) : freqColours[ti]],
+        'marker.coloraxis': [byGroup ? null : 'coloraxis']
+      }, [ti]);
+    });
+    // The scale is on the layout, so it survives hiding a trace; it is hidden
+    // only when the points no longer encode frequency.
+    Plotly.relayout(plot, { 'coloraxis.showscale': !byGroup });
+    colourBtn.textContent = byGroup ? 'Colour: source' : 'Colour: f/fₘ';
+    colourBtn.style.borderColor = byGroup ? 'var(--bg-strong)' : 'var(--bg-border)';
+  }
+  colourBtn.addEventListener('click', function () { byGroup = !byGroup; applyColour(); });
+  bodyEl.appendChild(colourBtn);
+  applyColour();
+
+  /* -------------------------------------------------------------- audio */
+  bodyEl.appendChild(section('Tone'));
+  // The hover card reads these. It is injected after this script, so the
+  // object has to be created here and merely filled in there.
+  const AUDIO = window.BG_AUDIO = window.BG_AUDIO || {};
+  if (AUDIO.playOnClick === undefined) AUDIO.playOnClick = true;
+  if (AUDIO.playOnHover === undefined) AUDIO.playOnHover = false;
+
+  // The two modes are exclusive. Both on would sound the same bubble twice for
+  // one gesture: once as the cursor arrives, once as the click lands. Both off
+  // is allowed, and means silence unless the card's own button is used.
+  const AUDIO_MODES = ['playOnClick', 'playOnHover'];
+  const repaint = {};
+  function setMode(key, on) {
+    AUDIO[key] = on;
+    if (on) {
+      AUDIO_MODES.forEach(function (k) {
+        if (k !== key && AUDIO[k]) { AUDIO[k] = false; if (repaint[k]) repaint[k](); }
+      });
+    }
+    if (repaint[key]) repaint[key]();
+    if (typeof AUDIO.onChange === 'function') AUDIO.onChange();
+  }
+
+  function toggleRow(label, hint, key) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.style.cssText = themeBtn.style.cssText;
+    function paint() {
+      b.textContent = (AUDIO[key] ? '◉  ' : '○  ') + label;
+      b.style.borderColor = AUDIO[key] ? 'var(--bg-strong)' : 'var(--bg-border)';
+    }
+    repaint[key] = paint;
+    b.addEventListener('click', function () { setMode(key, !AUDIO[key]); });
+    paint();
+    bodyEl.appendChild(b);
+    if (hint) {
+      const h = document.createElement('div');
+      h.style.cssText = 'font-size:10.5px;line-height:1.4;color:var(--bg-muted);margin:-2px 0 7px 2px;';
+      h.textContent = hint;
+      bodyEl.appendChild(h);
+    }
+  }
+  toggleRow('Play on click',
+            'Click a bubble to hear it. Turn off to pin the card instead.',
+            'playOnClick');
+  toggleRow('Play on hover', 'Sweep the cloud to hear it; softer attack.', 'playOnHover');
+  // Defaults could in principle arrive with both set; settle it before anyone
+  // sees the panel, rather than leaving two lit buttons that contradict.
+  if (AUDIO.playOnClick && AUDIO.playOnHover) setMode('playOnHover', false);
 
   const defsBtn = document.createElement('button');
   defsBtn.type = 'button';
@@ -850,9 +1061,11 @@ def control_panel_script(
     </div>
     <div style="margin-top:7px;padding-top:6px;border-top:1px solid var(--bg-border);color:var(--bg-muted);">
       Hovering a point pops up its card, which follows the mouse.
-      <b style="color:var(--bg-strong)">Click</b> to freeze the card in place so you
-      can reach the <b style="color:var(--bg-strong)">Play tone</b> button and the
-      radius selector. Click anywhere on empty space to un-freeze and dismiss it.
+      <b style="color:var(--bg-strong)">Click</b> sounds that bubble, so you can
+      click through a region to hear it. Turn on
+      <b style="color:var(--bg-strong)">Play on hover</b> to sweep instead.
+      To pin the card in place, walk the pointer onto it, or switch
+      <b style="color:var(--bg-strong)">Play on click</b> off and click.
       Drag this window by its header if it is in the way.
     </div>`;
   let defsOpen = false;
@@ -926,8 +1139,8 @@ card.innerHTML = `
               border:1px solid var(--bg-border);background:var(--bg-input);color:var(--bg-text);">
         <option value="0.5">0.5 mm</option>
         <option value="1">1 mm</option>
-        <option value="2" selected>2 mm</option>
-        <option value="5">5 mm</option>
+        <option value="2">2 mm</option>
+        <option value="5" selected>5 mm</option>
       </select>
     </label>
     <span class="bubble-pitch" style="font-size:11px;color:var(--bg-muted);
@@ -960,8 +1173,8 @@ stylePlay();
 
 // Rescale the unit-volume frequency to the pitch a bubble of the chosen
 // equivalent radius would sound at: f = f_unit * V^(-1/3). The dataset's
-// ~5.3 Hz unit-volume values are far below hearing; 2 mm lands the set in
-// roughly 1.6-2.2 kHz.
+// ~5.3 Hz unit-volume values are far below hearing; 5 mm, the default, lands
+// the set near 650-880 Hz, low enough that sweeping the cloud is comfortable.
 function playbackHz() {
     const r = parseFloat(radiusSel.value) * 1e-3;
     const V = (4 / 3) * Math.PI * r * r * r;
@@ -976,15 +1189,36 @@ radiusSel.addEventListener('change', refreshPitch);
 
 // Damped harmonic oscillator driven by a Gaussian pressure pulse, integrated
 // with the same Verlet scheme as the forcing demo (Q = 12).
+//
+// `soft` is the sweeping voice. A struck bubble starts with a click, and a few
+// dozen of those a second is unpleasant, so the soft voice widens the driving
+// pulse until less energy lands above f0, rounds the onset over a fraction of
+// the ring time, and shortens the note, which turns a sweep across the cloud
+// into a run of notes. It is quieter than the struck voice on purpose, since it
+// fires far more often; both are peak-normalised, so level does not wander from
+// bubble to bubble within either voice.
 let audioCtx = null;
-async function playTone() {
+let audioBus = null;
+const activeVoices = [];
+
+function ensureCtx() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioBus = audioCtx.createGain();
+        audioBus.gain.value = 0.9;
+        audioBus.connect(audioCtx.destination);
+    }
+    return audioCtx;
+}
+
+async function playTone(soft) {
     const f0 = playbackHz();
     if (!isFinite(f0) || f0 <= 0) return;
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    ensureCtx();
     if (audioCtx.state === 'suspended') await audioCtx.resume();
 
     const sr = audioCtx.sampleRate;
-    const dur = 0.45;
+    const dur = soft ? 0.22 : 0.45;
     const n = Math.floor(sr * dur);
     const buf = audioCtx.createBuffer(1, n, sr);
     const data = buf.getChannelData(0);
@@ -993,7 +1227,8 @@ async function playTone() {
     const Q = 12;
     const beta = omega / (2 * Q);
     const dt = 1 / sr;
-    const tau = 1 / (8 * f0);      // pulse short enough to excite f0 broadly
+    // Wider pulse => gentler onset. 8 is the impulsive original.
+    const tau = 1 / ((soft ? 2.2 : 8) * f0);
     const t0 = Math.max(2 * tau, 0.001);
 
     let xPrev = 0, xCur = 0;
@@ -1006,18 +1241,52 @@ async function playTone() {
         xPrev = xCur; xCur = xNext;
         data[i] = xNext;
     }
+    if (soft) {
+        // The envelope goes on BEFORE normalising, or the two fight and the
+        // result is frequency dependent: the ring decays in 2Q/omega, which is
+        // 5.9 ms at 650 Hz and 4.3 ms at 880 Hz, so a fade measured in absolute
+        // milliseconds swallows a high note while barely touching a low one,
+        // and every bubble comes out at a different level.
+        //
+        // For the same reason the attack is a fraction of that ring time rather
+        // than a fixed span: it has to soften the onset without outlasting the
+        // note it is shaping.
+        const ring = (2 * Q) / omega;
+        const atk = Math.max(1, Math.min(Math.floor(sr * 0.45 * ring), n >> 1));
+        for (let i = 0; i < atk; i++)
+            data[i] *= 0.5 - 0.5 * Math.cos(Math.PI * i / atk);
+        const rel = Math.min(Math.floor(sr * 0.04), n >> 1);
+        for (let i = 0; i < rel; i++)
+            data[n - 1 - i] *= 0.5 - 0.5 * Math.cos(Math.PI * i / rel);
+    }
+    // Normalise last, so every bubble leaves at the same peak whatever its
+    // pitch and whichever voice played it.
     let peak = 0;
     for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(data[i]));
-    if (peak > 0) for (let i = 0; i < n; i++) data[i] = data[i] / peak * 0.5;
+    if (peak > 0) {
+        const amp = soft ? 0.34 : 0.5;
+        for (let i = 0; i < n; i++) data[i] = data[i] / peak * amp;
+    }
 
     const src = audioCtx.createBufferSource();
     src.buffer = buf;
     const gain = audioCtx.createGain();
     gain.gain.value = 1.0;
-    src.connect(gain).connect(audioCtx.destination);
+    src.connect(gain).connect(audioBus);
+    // A fast sweep can stack notes faster than they decay; cap the pile-up so
+    // the mix does not turn to mush or clip.
+    activeVoices.push(src);
+    src.onended = function () {
+        const i = activeVoices.indexOf(src);
+        if (i !== -1) activeVoices.splice(i, 1);
+    };
+    while (activeVoices.length > 6) {
+        const old = activeVoices.shift();
+        try { old.stop(); } catch (err) { /* already finished */ }
+    }
     src.start();
 }
-playBtn.addEventListener('click', function (e) { e.stopPropagation(); playTone(); });
+playBtn.addEventListener('click', function (e) { e.stopPropagation(); playTone(false); });
 
 // One row per descriptor: label, grey track, filled portion, numeric value.
 // Fill fraction is the value's position between the 1st and 99th percentile of
@@ -1098,8 +1367,26 @@ function fillCard(point) {
 // click as the start of an orbit drag and never emits the event.)
 let hideTimer = null;
 let overCard = false;
-let frozen = false;          // click-to-freeze, so Play is reachable
+let frozen = false;          // click-to-freeze, so the radius menu is reachable
 let lastPoint = null;        // most recent hovered point, for the freeze click
+let frozenPoint = null;      // the point the frozen card is showing
+// Did this click land on a bubble? A frozen card keeps `lastPoint` and stays
+// displayed, so neither can answer that on its own -- without this, clicking
+// empty space to release would sound whatever was hovered minutes ago.
+//
+// The live flag alone is not enough either: gl3d treats a press as the start of
+// an orbit and can drop the hover before the click event arrives, which would
+// make a click on a marker look like a click on nothing. So a hover that was
+// live very recently still counts.
+let hovering = false;
+let lastHoverAt = 0;
+const CLICK_GRACE_MS = 320;
+function nowMs() {
+    return (window.performance && performance.now) ? performance.now() : Date.now();
+}
+function clickWasOnPoint() {
+    return !!lastPoint && (hovering || (nowMs() - lastHoverAt) < CLICK_GRACE_MS);
+}
 
 function cancelHide() { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } }
 function scheduleHide(ms) {
@@ -1141,31 +1428,89 @@ document.addEventListener('click', function (e) {
     if (card.contains(e.target)) return;
     if (e.target.closest && e.target.closest('[data-bubble-panel]')) return;
 
-    // Release takes priority: while frozen the card is still displayed, so
-    // testing "is a card showing?" first would re-freeze on every click and
-    // there would be no way out.
+    const AUDIO = window.BG_AUDIO || {};
+    const onPoint = clickWasOnPoint();
+
+    // Any click inside the plot unlocks the AudioContext. Browsers will not
+    // start one from a hover, so without this the hover mode is silent until
+    // the user happens to click a marker.
+    if (plot.contains(e.target)) { try { ensureCtx(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch (err) {} }
+
+    const sounds = onPoint && AUDIO.playOnClick !== false;
+
+    // Clicking a bubble sounds it, and then does nothing else. Clicking through
+    // a region has to stay a fluid gesture, so with this mode on a click no
+    // longer pins the card -- the card keeps trailing the cursor and the next
+    // click is immediately another note.
+    if (sounds) { playTone(false); return; }
+
     if (frozen) {
+        // Clicking a different bubble re-aims the frozen card instead of
+        // dismissing it; clicking away releases.
+        if (onPoint && lastPoint !== frozenPoint) {
+            fillCard(lastPoint);
+            frozenPoint = lastPoint;
+            placeCard(e);
+            return;
+        }
         setFrozen(false);
         card.style.display = 'none';
         return;
     }
-    if (lastPoint && card.style.display === 'block') setFrozen(true);
+    // With sound-on-click off, a click pins the card instead, which is how the
+    // Play button and the radius selector are reached with the mouse.
+    if (onPoint && card.style.display === 'block') {
+        setFrozen(true);
+        frozenPoint = lastPoint;
+    }
 });
+
+// Sweeping the cloud with the tone on: one soft note per marker entered. The
+// throttle is what keeps a fast drag musical rather than a burst -- Plotly
+// re-fires hover on the same marker as the cursor moves across it.
+let lastSounded = '';
+let lastSoundAt = 0;
+function maybeSoundHover(point) {
+    const AUDIO = window.BG_AUDIO || {};
+    if (!AUDIO.playOnHover) return;
+    const id = point.curveNumber + ':' + point.pointNumber;
+    const now = (window.performance && performance.now) ? performance.now() : Date.now();
+    if (id === lastSounded && now - lastSoundAt < 260) return;
+    if (now - lastSoundAt < 55) return;
+    lastSounded = id;
+    lastSoundAt = now;
+    playTone(true);
+}
 
 plot.on('plotly_hover', function(data) {
     const point = data.points && data.points[0];
     if (!point || !point.customdata) return;
     lastPoint = point;
-    if (frozen) return;
+    hovering = true;
+    lastHoverAt = nowMs();
+    if (frozen) {
+        // The card is pinned to another bubble, but the pitch under the cursor
+        // is still what the sweep is for, so read the frequency off this point.
+        const AUDIO = window.BG_AUDIO || {};
+        if (AUDIO.playOnHover) {
+            const keep = currentFreqUnit;
+            currentFreqUnit = Number(point.customdata[2 + BUBBLE_FEATURES.labels.length]);
+            maybeSoundHover(point);
+            currentFreqUnit = keep;
+        }
+        return;
+    }
     cancelHide();
     fillCard(point);
     card.style.display = 'block';
     // Place after the card is visible so getBoundingClientRect sees real
     // dimensions; data.event is absent on gl3d, hence the tracked-cursor fallback.
     placeCard(data.event);
+    maybeSoundHover(point);
 });
 
 plot.on('plotly_unhover', function() {
+    hovering = false;
     if (frozen) return;
     // Long enough to walk the pointer from the marker onto the card.
     scheduleHide(450);
@@ -1464,6 +1809,18 @@ def main() -> None:
     feat_lo = np.nanpercentile(feature_matrix, 1.0, axis=0)
     feat_hi = np.nanpercentile(feature_matrix, 99.0, axis=0)
     feat_hi = np.where(feat_hi > feat_lo, feat_hi, feat_lo + 1e-12)
+
+    # Axis ranges are pinned to each descriptor's full extent over the whole
+    # plotted set, not to whatever is currently visible. Without this Plotly
+    # autoranges, so hiding one source rescales the box and the remaining cloud
+    # appears to move -- which makes a VOF/LBM toggle impossible to read.
+    _ax_lo = np.nanmin(feature_matrix, axis=0)
+    _ax_hi = np.nanmax(feature_matrix, axis=0)
+    _ax_span = np.where(_ax_hi > _ax_lo, _ax_hi - _ax_lo, 1.0)
+    feature_ranges = [
+        [float(lo - 0.04 * s), float(hi + 0.04 * s)]
+        for lo, hi, s in zip(_ax_lo, _ax_hi, _ax_span)
+    ]
     if "source" in df.columns:
         src_arr = df["source"].astype(str).to_numpy()[ok]
         order = [g for g in ("VOF", "LBM") if (src_arr == g).any()]
@@ -1476,26 +1833,16 @@ def main() -> None:
     fig = go.Figure()
     main_group_traces: list[dict] = []
     for gi, (gname, gmask) in enumerate(group_masks):
+        # The scale lives on the layout, not on the first trace. A per-trace
+        # colorbar belongs to that trace, so hiding VOF took the legend with it
+        # and the remaining LBM points had no key at all.
         marker = dict(
             size=args.marker_size,
             color=color_values[gmask],
-            colorscale=paper_colorscale(),
+            coloraxis="coloraxis",
             opacity=args.opacity,
-            cmin=cmin_t,
-            cmax=cmax_t,
             symbol=group_symbols.get(gname, "circle"),
-            showscale=(gi == 0),
         )
-        if gi == 0:
-            marker["colorbar"] = dict(
-                title=colorbar_title,
-                tickmode="array",
-                tickvals=tick_values_transformed,
-                ticktext=[f"{v:.2f}" for v in tick_values],
-                len=0.72,
-                thickness=16,
-                outlinewidth=0,
-            )
         fig.add_trace(
             go.Scatter3d(
                 x=x[ok][gmask],
@@ -1714,11 +2061,30 @@ def main() -> None:
             font=dict(size=20, color="#1f2937"),
         ),
         updatemenus=updatemenus,
+        coloraxis=dict(
+            colorscale=paper_colorscale(),
+            cmin=cmin_t,
+            cmax=cmax_t,
+            colorbar=dict(
+                title=colorbar_title,
+                tickmode="array",
+                tickvals=tick_values_transformed,
+                ticktext=[f"{v:.2f}" for v in tick_values],
+                len=0.72,
+                thickness=16,
+                outlinewidth=0,
+            ),
+        ),
         scene=dict(
-            xaxis=dict(axis_common, title="1 − Φ<sub>VA</sub>"),
-            yaxis=dict(axis_common, title="1 − Φ<sub>VM</sub>"),
-            zaxis=dict(axis_common, title="1 − Φ<sub>W</sub>"),
-            camera=dict(eye=dict(x=1.65, y=1.65, z=1.1)),
+            # Ranges match the default X/Y/Z descriptors (indices 2, 3, 4) and
+            # are restated by applyAxes on every swap, so the box never resizes.
+            xaxis=dict(axis_common, title="1 − Φ<sub>VA</sub>",
+                       range=feature_ranges[2], autorange=False),
+            yaxis=dict(axis_common, title="1 − Φ<sub>VM</sub>",
+                       range=feature_ranges[3], autorange=False),
+            zaxis=dict(axis_common, title="1 − Φ<sub>W</sub>",
+                       range=feature_ranges[4], autorange=False),
+            camera=DEFAULT_CAMERA,
             aspectmode="cube",
         ),
         # The axis definitions used to sit in a MathJax block above the plot,
@@ -1744,6 +2110,8 @@ def main() -> None:
             control_panel_script(
                 toggle_groups, feature_labels, feature_titles,
                 len(main_group_traces),
+                feature_ranges=feature_ranges,
+                default_camera=DEFAULT_CAMERA,
             )
             + thumbnail_hover_script(
                 feature_labels, feat_lo.tolist(), feat_hi.tolist()

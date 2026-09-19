@@ -156,7 +156,13 @@ def main() -> int:
     if args.limit > 0:
         df = df.head(args.limit)
 
-    mesh_root = args.mesh_root.resolve()
+    import sys as _sys
+
+    if str(_REPO_ROOT / "python") not in _sys.path:
+        _sys.path.insert(0, str(_REPO_ROOT / "python"))
+    from utils.mesh_archive import require_mesh_root
+
+    mesh_root = require_mesh_root(args.mesh_root).resolve()
     saved_px = int(args.out_size) or int(args.size)
     out_dir = (
         args.out_dir.resolve()

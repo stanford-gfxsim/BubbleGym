@@ -49,10 +49,10 @@ import pandas as pd
 from matplotlib.colors import Normalize, to_hex
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
-# Tim2016 pouring meshes, flat. Kept for the scripts that import this module;
+# Langlois2016 pouring meshes, flat. Kept for the scripts that import this module;
 # this figure plots the BubbleGym dataset, whose meshes live under
 # DEFAULT_BUBBLE_MESH_ROOT in per-source folders.
-DEFAULT_MESH_ROOT = Path(os.environ.get("TIM2016_MESH_ROOT", "dataset/tim2016/individual_bubbles"))
+DEFAULT_MESH_ROOT = Path(os.environ.get("LANGLOIS2016_MESH_ROOT", "dataset/langlois2016/individual_bubbles"))
 
 # The 10k benchmark's .obj archive, split into VOF/ and LBM/.
 # Only needed to render new thumbnails: the .obj archive is distributed
@@ -260,7 +260,7 @@ def render_transparent_thumbnail(
     When ``largest_component_only`` is True the mesh is loaded via the
     plain numpy parser and reduced to its largest connected component
     before being handed to PyVista. This is the right behaviour for
-    Tim2016 OBJs that occasionally store satellite shells under one
+    Langlois2016 OBJs that occasionally store satellite shells under one
     physical_tag.
 
     ``show_edges`` draws the triangle wireframe, which reads as surface texture
@@ -943,7 +943,7 @@ def main() -> None:
     )
 
     ax.set_xlabel("Non-sphericity  $1 - \\Phi$  (Wadell)", fontsize=FIG_LABEL_FS)
-    ax.set_ylabel(f"Frequency ratio $f / f_M$", fontsize=FIG_LABEL_FS)
+    ax.set_ylabel("Frequency ratio $f / f_M$", fontsize=FIG_LABEL_FS)
     ax.tick_params(axis="both", labelsize=FIG_TICK_FS)
     # fig.suptitle(f"Bubble distribution in {args.csv.name}", fontsize=13, y=0.995)
     ax.grid(True, which="both", ls=":", alpha=0.35)

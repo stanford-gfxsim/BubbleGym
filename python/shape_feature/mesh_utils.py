@@ -283,8 +283,19 @@ def load_obj_mesh(
     return v, f
 
 
-def write_obj(path: Path, v: np.ndarray, f: np.ndarray) -> None:
-    """Minimal OBJ writer (``%.7g`` vertices, 1-based faces), written atomically."""
+def write_obj(
+    path: Path,
+    v: np.ndarray,
+    f: np.ndarray,
+    header: str = "laplacian-smoothed bubble OBJ",
+) -> None:
+    """Minimal OBJ writer (``%.7g`` vertices, 1-based faces), written atomically.
+
+    ``header`` becomes the leading ``#`` comment. Its default describes the one
+    caller that existed when this was written, the smoothing cache; pass your
+    own when writing anything else, so the file does not claim a smoothing it
+    never had.
+    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp_name = tempfile.mkstemp(
@@ -292,7 +303,7 @@ def write_obj(path: Path, v: np.ndarray, f: np.ndarray) -> None:
     )
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as h:
-            h.write("# laplacian-smoothed bubble OBJ\n")
+            h.write(f"# {header}\n")
             for i in range(v.shape[0]):
                 h.write(f"v {v[i, 0]:.7g} {v[i, 1]:.7g} {v[i, 2]:.7g}\n")
             for i in range(f.shape[0]):
@@ -345,7 +356,7 @@ def vertices_scaled_to_target_volume(
 # Mass properties (Mirtich 1996 / Eberly)
 # ---------------------------------------------------------------------------
 
-# Mirtich integral pre-factors (per src/moment.cpp).
+# Mirtich integral pre-factors (Mirtich 1996, Sec. 4).
 _MIRTICH_MULT = np.array(
     [
         1.0 / 6.0,
@@ -384,8 +395,7 @@ def compute_mirtich_moments(
     convention.
 
     Reference: Brian Mirtich, "Fast and Accurate Computation of Polyhedral Mass
-    Properties", Journal of Graphics Tools 1(2), 1996. Matches
-    ``src/moment.cpp`` (``bubbleLab::computeMoment``).
+    Properties", Journal of Graphics Tools 1(2), 1996.
     """
     v = np.asarray(vertices, dtype=np.float64)
     f = np.asarray(faces, dtype=np.int64)

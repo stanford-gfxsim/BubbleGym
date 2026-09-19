@@ -9,7 +9,9 @@ python python/scene/bubble_theater/plot_baseline_regressor_freq_curves.py
 Two inputs, both shipped. The per-frame curves come from the three
 `freq_curves.csv` files in
 [`fig01_bubble_theater/`](../fig01_bubble_theater), and the fitted baselines
-from `python/freq_model/output/output_baseline_regressors_8feature/`.
+from `python/freq_model/output/output_baseline_regressors_8feature/`, at the
+hyperparameters recorded in
+[`table02_regressor_comparison/baseline_metrics.json`](../table02_regressor_comparison/baseline_metrics.json).
 
 The same regressors supply the accuracy columns of
 [Table 2](../table02_regressor_comparison).

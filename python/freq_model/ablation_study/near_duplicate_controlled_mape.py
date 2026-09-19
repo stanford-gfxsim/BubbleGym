@@ -336,7 +336,6 @@ def main() -> None:
              "(merged df_used order reproduces training).")
         Xtr_raw = x_all[idx_train]
         Xte_raw = x_all[idx_test]
-        ftr = freq_all[idx_train]
         fte = freq_all[idx_test]
         test_mesh_id = mid[idx_test]
         test_source = df_used["source"].to_numpy()[idx_test]
@@ -495,7 +494,7 @@ def main() -> None:
         emit(f"{b:>6} | {int(mt.sum()):>6} {tm:>9.4f} | {int(ml.sum()):>6} {lm:>9.4f}")
     emit("")
     emit("Reading: the trajectory-derived LBM frames sit FARTHER from training in")
-    emit("descriptor space than the tim2016 bubbles (larger median d_i), i.e. they carry")
+    emit("descriptor space than the langlois2016 bubbles (larger median d_i), i.e. they carry")
     emit("no near-twin advantage. Within matched distance bins the two sources have")
     emit("essentially identical MAPE, so the higher LBM headline (0.136% vs 0.056%) is")
     emit("explained by LBM having more rare/large-d_i shapes -- not by trajectory leakage.")

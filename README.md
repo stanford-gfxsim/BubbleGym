@@ -47,11 +47,35 @@ of the paper. Each directory has its own README with the details.
 
 | Directory | What it holds |
 |---|---|
-| [`dataset/`](dataset) | The 10k benchmark CSV and the four paper scenes, each with one `trackedBubInfo` per frequency model. See [`dataset/README.md`](dataset/README.md) for the file format and scene provenance |
+| [`dataset/`](dataset) | The 10k benchmark CSV and the four paper scenes, each with one `trackedBubInfo` per frequency model. The 10,000 meshes themselves are a [separate download](https://drive.google.com/file/d/1RaK-cJ7NlHzVyHUncHQMwzrxlvt204PB/view?usp=sharing). See [`dataset/README.md`](dataset/README.md) for the file format and how to install the meshes |
 | [`python/`](python) | All code, in eight packages: the BEM solver, the eight shape descriptors, the models and ablations with trained weights, the format layer, and the per-scene drivers. See [`python/README.md`](python/README.md) |
 | [`results/experiments/`](results/experiments) | Every figure and table, one folder each, holding the plot and the raw data behind it. See [`results/experiments/README.md`](results/experiments/README.md) |
 
 ## Getting started
+
+**Install git-LFS first.** The scene files are tracked with it, and a clone
+without it does not degrade into pointer stubs, it fails outright:
+
+```
+fatal: the remote end hung up unexpectedly
+warning: Clone succeeded, but checkout failed.
+```
+
+```bash
+git lfs install
+git clone https://github.com/stanford-gfxsim/BubbleGym.git
+cd BubbleGym
+```
+
+If you already have a broken tree, or want the code without the 4.8 GB of scene
+data, skip the content and fetch it later:
+
+```bash
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/stanford-gfxsim/BubbleGym.git
+cd BubbleGym && git lfs pull        # when you want the scenes
+```
+
+Then the environment:
 
 ```bash
 conda create -n soundlab python=3.11 -y
@@ -61,9 +85,18 @@ pip install numpy scipy pandas matplotlib   # enough to read the data and plot
 pip install -r requirements.txt             # full stack: torch, bempp-cl, ...
 ```
 
-Run everything from the repository root with `PYTHONPATH=python`. The scene files
-are tracked with git-LFS, so run `git lfs install` before cloning or the working
-tree gets pointer stubs instead of data.
+Run everything from the repository root with `PYTHONPATH=python`.
+
+### Configuration
+
+Three environment variables point the scripts at data that lives outside the
+repository. All are optional; each script's default is the path shown.
+
+| Variable | What it points at | Default |
+|---|---|---|
+| `BUBBLEGYM_MESH_ROOT` | the 10k benchmark meshes, from the separate archive | `dataset/bubble_gym/meshes10k` |
+| `LANGLOIS2016_MESH_ROOT` | the Langlois et al. 2016 source meshes, for thumbnails | `dataset/langlois2016/individual_bubbles` |
+| `BUBBLEGYM_LBM_ROOT` | your own LBM output, for the per-scene timing sweeps | the scene path given on the command line |
 
 **Predict frequencies for a scene.** Each scene ships one
 `trackedBubInfo_<model>.txt` per frequency model, all sharing one bubble graph
@@ -83,9 +116,16 @@ python python/scene/_common/replace_trackedbubinfo_freq_with_minnaert.py \
     --src <scene>/trackedBubInfo_NN.txt --out <scene>/trackedBubInfo_Minnaert.txt
 ```
 
-For a single mesh rather than a scene, `python/freq_model/NN/nn_inference.py`
-runs the surrogate directly and `python/bem/compute_freq_bempp_galerkin.py`
-solves the BEM reference.
+**For a single mesh** rather than a scene. Both are packages, so run them with
+`-m`; invoking the files by path fails on their relative imports.
+
+```bash
+PYTHONPATH=python python -m freq_model.NN.nn_inference bubble.obj --radius-mm 5
+PYTHONPATH=python python -m bem.compute_freq_bempp_galerkin bubble.obj
+```
+
+The first prints the surrogate's unit-volume frequency, and the physical
+frequency too when given a radius. The second solves the BEM reference.
 
 **Reproduce a figure or table.** Every trained model and ablation variant ships
 with its weights, so nothing needs retraining.
@@ -95,7 +135,11 @@ regenerable, which are not, and why.
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE).
+The code is released under MIT; see [`LICENSE`](LICENSE). The data, meaning the
+benchmark CSV, thumbnails, scene files and the separately distributed mesh
+archive, is released under CC BY 4.0; see [`dataset/LICENSE`](dataset/LICENSE).
+The `VOF` bubbles derive from Langlois et al. 2016, so please cite that work as
+well when you use them.
 
 ## Citation
 

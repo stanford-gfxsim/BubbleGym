@@ -20,7 +20,7 @@ below is a destination, not a path you can open.
 | [`fig01_bubble_theater/`](fig01_bubble_theater) | 1 | `fig/teaser/*/freq_curves.jpg`, `fig/teaser/*/*.jpg` |
 | [`fig02_dataset_shape_space/`](fig02_dataset_shape_space) | 2 | `fig/dataset_10k_distribution.png` |
 | [`fig03_nonsphericity_distribution/`](fig03_nonsphericity_distribution) | 3 | `fig/fig3.jpg` |
-| [`fig04_per_bin_model_error/`](fig04_per_bin_model_error) | 4 | `fig/per_bin_mape_4series_curves.png` |
+| [`fig04_per_bin_model_error/`](fig04_per_bin_model_error) | 4 | `fig/per_bin_mape_wadell_10k.png` |
 | [`fig05_fruit_splash/`](fig05_fruit_splash) | 5 | `fig/fruits_final.jpg` |
 | [`fig06_underwater_exhalation/`](fig06_underwater_exhalation) | 6 | `fig/exhale_final.jpg` |
 | [`fig07_single_rising_bubble/`](fig07_single_rising_bubble) | 7 | `fig/fig7-single-bubble.jpg` |
@@ -100,4 +100,6 @@ to no folder.
 
 - The **mean mesh size** of the benchmark: 3,959 vertices and 7,914 faces over
   all 10,000 meshes. `mesh_complexity_stats.py` recomputes it, but it needs the
-  mesh archive, which is distributed separately: Google drive link to the meshes: https://drive.google.com/file/d/1RaK-cJ7NlHzVyHUncHQMwzrxlvt204PB/view?usp=sharing
+  mesh archive, which is distributed separately; see
+  [`dataset/README.md`](../../dataset/README.md) for the download and where to
+  unpack it.

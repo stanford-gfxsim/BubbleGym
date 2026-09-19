@@ -19,6 +19,8 @@ outputs
 # scenes. Anything else dropped into dataset/ stays ignored by default.
 /dataset/*
 !/dataset/README.md
+!/dataset/index.html
+!/dataset/LICENSE
 !/dataset/bubble_gym/
 !/dataset/bubble_theater/
 !/dataset/fruit_splash/

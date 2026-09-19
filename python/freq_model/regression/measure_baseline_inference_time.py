@@ -73,7 +73,7 @@ from freq_model.NN.fit_shape_freq_model import (  # noqa: E402
 )
 
 DEFAULT_METRICS_JSON = (
-    _REPO_ROOT / "results" / "baseline_regressors_8feat_bubblegym_10k" / "baseline_metrics.json"
+    _REPO_ROOT / "results" / "experiments" / "table02_regressor_comparison" / "baseline_metrics.json"
 )
 DEFAULT_MODEL_DIR = (
     _FREQ_MODEL_DIR / "output" / "output_8feature_direct_bubblegym_10k"

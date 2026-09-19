@@ -2,7 +2,7 @@
 
 Measured 2026-07-03/04 on **Intel i9-14900K (24 cores / 32 threads), NVIDIA GeForce RTX 5090**,
 Windows 11 — the hardware named in Sec. 6 of the paper. Model: 8-feat MLP retrained on
-`dataset/bubble_gym/dataset_bubblegym_10k.csv` (6,000 Tim2016 + 4,000 LBM; test MAPE 0.07%),
+`dataset/bubble_gym/dataset_bubblegym_10k.csv` (6,000 Langlois2016 + 4,000 LBM; test MAPE 0.07%),
 artifacts `python/freq_model/output/output_8feature_direct_bubblegym_10k`.
 BEM: P1-DP0 Galerkin, mass precond, GMRES tol=1e-12, quadrature 6/6 (dataset profile), CPU,
 sequential single-core. bempp JIT warm-up excluded everywhere.
@@ -58,36 +58,24 @@ kept only as mesh-size context; their summary JSONs are no longer shipped, so
 the timing cells cannot be re-derived here. The paper's Fruits and Exhalation
 numbers are the `fruit08` / `exhale15` rows of Table 1 above.
 
-## Regressors on the 10k dataset: accuracy + inference timing
+## Regressors on the 10k dataset
 
-Same 8 features, split (seed 42, 70/15/15) and MAPE protocol for every row;
-timing re-measured with
-`python/freq_model/regression/measure_baseline_inference_time.py`
-(warm-up 20, mean of 200 reps; **compiled** = numba-jitted folded math ≈ what a
-C++ caller pays; **framework** = sklearn/torch call path incl. per-call
-overhead). The ledger these cells were transcribed from is not shipped.
+The regressor accuracy and timing table that used to sit here is removed. It
+was transcribed from an older run on a 7,001/1,499/1,499 split, so its MAPEs
+(linear 0.220, poly-2 0.062, poly-3 0.052, RBF 0.055, MLP 0.074) disagreed with
+the paper's Table 2, and its ledger never shipped.
 
-| Model | Test MAPE (%) | Max APE (%) | Compiled single (ns) | Raw single (µs) | Framework single (µs) | Framework µs/bubble (batch 1499) |
-|---|---|---|---|---|---|---|
-| Linear regression | 0.220 | 3.51 | 1.4 | 1.29 | 51.9 | 0.055 |
-| Polynomial (deg 2) + ridge | 0.062 | 1.60 | 57.9 | 11.54 | 148.9 | 0.283 |
-| Polynomial (deg 3) + ridge | 0.052 | 2.18 | 144.5 | 9.14 | 179.3 | 1.184 |
-| RBF kernel ridge | 0.055 | 2.01 | 35,182 | 50.55 | 372.3 | 66.875 |
-| MLP (paper, CPU) | 0.074 | 3.67 | 3,338 | 67.27 | 360.8 | 0.443 |
-| MLP (paper, GPU incl. transfer) | 0.074 | 3.67 | — | — | 500.7 | 0.383 |
+The paper's numbers live in
+[`../table02_regressor_comparison/`](../table02_regressor_comparison): accuracy
+and parameter counts from
+`python/freq_model/output/output_baseline_regressors_8feature/export_config.json`
+(7,000/1,500/1,500 split), per-bubble timing from
+`nn_framework_timing_tables.json`.
 
-- MLP per-source test MAPE: Tim2016 0.053%, LBM-3k 0.124%, LBM-1k 0.048%
-  (`metrics.json`). Whole-scene batched GPU inference: Fruits (n=6,511)
-  0.069 µs/bubble, Exhale (n=32,464) 0.015 µs/bubble (`batched_gpu_inference.json`).
-- RBF pays per-query kernel evaluation against all 7,001 training samples —
-  accurate but 2–4 orders of magnitude slower than the parametric models.
-- An all-bubbles regressor post-pass (`apply_regressors_all_bubbles.py`) was run
-  over the superseded `fruits` and `exhale` sweeps. Its summary JSONs are no
-  longer shipped, so those numbers are not reproducible here. The qualitative
-  result it established still holds and is what the paper argues: the degree-2
-  ridge matches the MLP in-distribution but **extrapolates catastrophically**
-  off it, producing exp-overflow frequencies in log-f space (up to literal
-  Infinity), while the bounded MLP degrades gracefully.
+One qualitative result from that older work still stands and is what the paper
+argues: the polynomial regressors match the MLP in distribution but can
+extrapolate badly off it, producing exp-overflow frequencies in log-f space,
+while the bounded MLP degrades gracefully.
 
 ## Notes
 

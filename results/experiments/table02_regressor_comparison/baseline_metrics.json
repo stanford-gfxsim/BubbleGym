@@ -1,0 +1,123 @@
+{
+  "dataset": "dataset/bubble_gym/dataset_bubblegym_10k.csv",
+  "seed": 42,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "feature_cols": [
+    "i11_over_i00",
+    "i22_over_i00",
+    "non_sph_va",
+    "non_sph_vm",
+    "non_sph_w",
+    "eta_V",
+    "eta_A",
+    "eta_M"
+  ],
+  "split_check": "test partition identical to python/freq_model/output/output_8feature_direct_bubblegym_10k/split.json (n_test=1500)",
+  "n_train": 7000,
+  "n_val": 1500,
+  "n_test": 1500,
+  "tuning": "hyperparameters fixed from python/freq_model/output/output_baseline_regressors_8feature/export_config.json; no search",
+  "minnaert_clamp": null,
+  "models": {
+    "linear": {
+      "hparams": {},
+      "metrics": {
+        "train": {
+          "rmse_log": 0.0036444671351565402,
+          "mape": 0.21038279838588414,
+          "max_ape": 4.005175910932405
+        },
+        "val": {
+          "rmse_log": 0.003937896200635764,
+          "mape": 0.21721506046923117,
+          "max_ape": 5.068815178434566
+        },
+        "test": {
+          "rmse_log": 0.0038449870905215536,
+          "mape": 0.22554368907030256,
+          "max_ape": 3.1885105623707464
+        }
+      },
+      "fit_seconds": 0.006071200001315447
+    },
+    "poly2": {
+      "hparams": {
+        "degree": 2,
+        "ridge_alpha": 0.001
+      },
+      "metrics": {
+        "train": {
+          "rmse_log": 0.0014284405710766803,
+          "mape": 0.061331583872960095,
+          "max_ape": 1.8206194018083697
+        },
+        "val": {
+          "rmse_log": 0.0015064339314749566,
+          "mape": 0.06299989970778685,
+          "max_ape": 1.727078635371588
+        },
+        "test": {
+          "rmse_log": 0.0016780848692399934,
+          "mape": 0.07262956961161347,
+          "max_ape": 1.9324682790244814
+        }
+      },
+      "fit_seconds": 0.0206426000004285
+    },
+    "poly3": {
+      "hparams": {
+        "degree": 3,
+        "ridge_alpha": 1e-06
+      },
+      "metrics": {
+        "train": {
+          "rmse_log": 0.0010744250022617975,
+          "mape": 0.045411826318182844,
+          "max_ape": 1.593559181961014
+        },
+        "val": {
+          "rmse_log": 0.00146796436872095,
+          "mape": 0.05240995773430855,
+          "max_ape": 2.589804047048259
+        },
+        "test": {
+          "rmse_log": 0.0014826456811715698,
+          "mape": 0.05815366273948202,
+          "max_ape": 2.5010307041439424
+        }
+      },
+      "fit_seconds": 0.03451119999954244
+    },
+    "rbf": {
+      "hparams": {
+        "kernel": "rbf",
+        "alpha": 0.0001,
+        "gamma": 0.008111308307896872
+      },
+      "metrics": {
+        "train": {
+          "rmse_log": 0.0011649007559808547,
+          "mape": 0.050258348332575135,
+          "max_ape": 1.3357589318145304
+        },
+        "val": {
+          "rmse_log": 0.0014566084331614378,
+          "mape": 0.05430259306962406,
+          "max_ape": 2.1860521739980583
+        },
+        "test": {
+          "rmse_log": 0.0016443400971492216,
+          "mape": 0.0646160120153044,
+          "max_ape": 2.4768667422375015
+        }
+      },
+      "fit_seconds": 2.2061305999995966
+    }
+  },
+  "reference_mlp_test_metrics": {
+    "rmse_log": 0.0023013028298481397,
+    "mape": 0.08858017253930929,
+    "max_ape": 3.7133850522145293
+  }
+}

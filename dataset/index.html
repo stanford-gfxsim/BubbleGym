@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The BubbleGym benchmark</title>
+<meta name="description" content="What the BubbleGym benchmark contains: 10,000 nonspherical bubble meshes with BEM ground-truth resonant frequencies, eight scale-invariant shape descriptors, and where to download each piece.">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('bubblegym-theme');
+      if (saved === 'dark' || saved === 'light') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    } catch (e) { /* private mode: fall through to the system preference */ }
+  })();
+</script>
+<link rel="stylesheet" href="../results/experiments/page.css">
+<style>
+  .dl{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:0 0 8px}
+  @media (max-width:700px){ .dl{grid-template-columns:1fr} }
+  .dl a{display:block; padding:15px 17px; border:1px solid var(--rule);
+        border-radius:10px; background:var(--panel); color:var(--ink)}
+  .dl a:hover{border-color:var(--accent); text-decoration:none}
+  .dl .t{display:block; font-family:var(--serif); font-size:18px; font-weight:600}
+  .dl a:hover .t{color:var(--accent)}
+  .dl .s{display:block; font-size:13.5px; color:var(--muted); margin-top:4px}
+  .dl .sz{display:inline-block; margin-top:8px; padding:2px 8px; font-size:11.5px;
+          border:1px solid var(--rule); border-radius:999px; color:var(--muted)}
+  .note{font-size:14.5px; color:var(--muted); border-left:2px solid var(--rule);
+        padding:2px 0 2px 13px; margin:0 0 14px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">BubbleGym</span>
+    <a class="item" href="../index.html">&#8592; Project page</a>
+    <a class="item" href="../results/experiments/README.md">All figures</a>
+    <button id="theme-toggle" type="button" aria-label="Switch between light and dark mode">
+      <span id="theme-icon">&#9790;</span> <span id="theme-label">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Benchmark</div>
+    <h1>The BubbleGym dataset</h1>
+    <p class="caption">
+      10,000 nonspherical bubble meshes, each with a boundary-element
+      ground-truth resonant frequency and eight scale-invariant shape
+      descriptors.
+    </p>
+  </header>
+
+  <section>
+    <h2>What it contains</h2>
+    <p>
+      Every entry is one closed triangle mesh of a single bubble, taken from a
+      fluid simulation rather than generated analytically, so the shapes carry
+      the dimples, tails and pinch points that real entrained bubbles have. Two
+      solvers contributed them.
+    </p>
+    <table>
+      <tr><th>Source</th><th>Bubbles</th><th>What it is</th></tr>
+      <tr><td><code>VOF</code></td><td>6,000</td>
+          <td>volume-of-fluid simulation</td></tr>
+      <tr><td><code>LBM</code></td><td>4,000</td>
+          <td>lattice Boltzmann simulation, generally the more deformed shapes</td></tr>
+    </table>
+    <p>
+      Every mesh is rescaled to unit volume before anything is computed. That is
+      what makes the frequencies comparable across the set: size is divided out,
+      so what remains is the effect of shape alone. A unit-volume sphere sounds
+      at 5.2926&nbsp;Hz, and the benchmark spans 5.2937 to 7.1796&nbsp;Hz, so the
+      most deformed bubbles ring about 36&thinsp;% sharp of the spherical
+      prediction. To recover a physical frequency, scale by the cube root of the
+      volume you want.
+    </p>
+  </section>
+
+  <section>
+    <h2>Downloads</h2>
+    <div class="dl">
+      <a href="bubble_gym/dataset_bubblegym_10k.csv">
+        <span class="t">Benchmark CSV</span>
+        <span class="s">One row per bubble: geometry, the eight descriptors, and
+          the reference frequency. This is the file every model in the paper is
+          trained and scored on.</span>
+        <span class="sz">3.2 MB &middot; 10,000 rows</span>
+      </a>
+      <a href="https://drive.google.com/file/d/1RaK-cJ7NlHzVyHUncHQMwzrxlvt204PB/view?usp=sharing">
+        <span class="t">Mesh archive</span>
+        <span class="s">The 10,000 meshes themselves, as OBJ files named by the
+          <code>mesh_filename</code> column. Distributed separately on Google
+          Drive because of its size.</span>
+        <span class="sz">Google Drive</span>
+      </a>
+      <a href="https://github.com/stanford-gfxsim/BubbleGym/tree/main/dataset/bubble_gym">
+        <span class="t">Mesh thumbnails</span>
+        <span class="s">A 100&times;100 render of every bubble, grouped by
+          source. These ship in the repository, so no mesh download is needed to
+          look at a shape.</span>
+        <span class="sz">in the repo</span>
+      </a>
+      <a href="../results/html/bubblegym_10k_nonsphericity_axes_3d.html">
+        <span class="t">Explore it first</span>
+        <span class="s">All 10,000 bubbles in 3D on any three descriptors you
+          pick. Hover a point for its mesh, click to hear the pitch.</span>
+        <span class="sz">interactive</span>
+      </a>
+    </div>
+    <p class="note">
+      The CSV names meshes but does not contain them. Download the archive only
+      if you need the geometry itself; the descriptors and frequencies in the
+      CSV are enough to reproduce every model and figure in the paper.
+    </p>
+  </section>
+
+  <section>
+    <h2>What is in the CSV</h2>
+    <p>
+      Nineteen columns, one row per bubble. Quantities are computed after the
+      unit-volume rescaling.
+    </p>
+    <table>
+      <tr><th>Column</th><th>Meaning</th></tr>
+      <tr><td><code>mesh_id</code>, <code>mesh_filename</code></td>
+          <td>identity of the mesh in the archive; <code>mesh_id</code> carries
+              the source folder, which matters because some stems occur under
+              both sources</td></tr>
+      <tr><td><code>source</code></td><td><code>VOF</code> or <code>LBM</code></td></tr>
+      <tr><td><code>surface_area</code>, <code>volume</code>, <code>M</code></td>
+          <td>area, volume (1 by construction) and integrated mean curvature</td></tr>
+      <tr><td><code>W_vertex</code></td>
+          <td>Willmore energy, from the cotangent Laplacian with mixed Voronoi
+              vertex areas</td></tr>
+      <tr><td><code>V_hull</code>, <code>A_hull</code>, <code>M_hull</code></td>
+          <td>the same three quantities for the convex hull</td></tr>
+      <tr><td><code>eta_V</code>, <code>eta_A</code>, <code>eta_M</code></td>
+          <td>ratios of the bubble to its hull; these measure concavity, so a
+              convex shape sits at 1</td></tr>
+      <tr><td><code>Phi_VM</code></td>
+          <td>one of the three nonsphericity measures; the other two derive from
+              the columns above</td></tr>
+      <tr><td><code>i00</code>, <code>i11</code>, <code>i22</code></td>
+          <td>principal moments of inertia; the model uses the two ratios
+              <code>i11/i00</code> and <code>i22/i00</code></td></tr>
+      <tr><td><code>frequency</code></td>
+          <td><b>the label.</b> Resonant frequency in Hz from the Galerkin
+              boundary-element solver</td></tr>
+      <tr><td><code>f_strasberg</code></td>
+          <td>the analytic ellipsoidal-proxy prediction, for comparison</td></tr>
+    </table>
+    <p>
+      The eight model inputs are the two inertia ratios, the three nonsphericity
+      measures and the three convex-hull ratios. All eight are dimensionless and
+      invariant to scale and rotation, which is why one model covers every
+      bubble size.
+    </p>
+  </section>
+
+  <section>
+    <h2>The meshes</h2>
+    <p>
+      Closed, watertight, oriented triangle meshes, one OBJ per bubble, laid out
+      in <code>VOF/</code> and <code>LBM/</code> folders that match the
+      <code>mesh_id</code> column.
+    </p>
+    <table>
+      <tr><th></th><th>Vertices</th><th>Triangles</th></tr>
+      <tr><td>mean, whole set</td><td>3,959</td><td>7,914</td></tr>
+      <tr><td>median</td><td>3,866</td><td>7,727</td></tr>
+      <tr><td>range</td><td>362 to 10,000</td><td>&mdash;</td></tr>
+      <tr><td>VOF alone</td><td>3,187</td><td>6,370</td></tr>
+      <tr><td>LBM alone</td><td>5,117</td><td>10,231</td></tr>
+      <tr><td>total</td><td>39.6 M</td><td>79.1 M</td></tr>
+    </table>
+    <p>
+      Resolution is the reason the two sources differ in cost as well as shape:
+      the lattice Boltzmann bubbles carry roughly 60&thinsp;% more triangles
+      apiece. Meshes are stored at their simulation scale, and the pipeline
+      rescales each to unit volume before computing descriptors, so re-deriving
+      any column from the archive means applying that step first.
+    </p>
+  </section>
+
+  <section>
+    <h2>Using it</h2>
+    <p>
+      Reading the benchmark needs nothing beyond pandas. Reproducing the
+      frequency column needs the mesh archive and a boundary-element solver.
+    </p>
+    <pre><code>import pandas as pd
+df = pd.read_csv("dataset/bubble_gym/dataset_bubblegym_10k.csv")
+</code></pre>
+    <p>
+      The shape descriptors are computed by
+      <code>python/shape_feature/</code>, the reference frequencies by
+      <code>python/bem/</code>, and the trained models live in
+      <code>python/freq_model/</code> with their weights. The scene datasets
+      beside this one, used for the figures, are described in
+      <a href="README.md">the directory README</a>, which also gives the
+      <code>trackedBubInfo</code> file format.
+    </p>
+  </section>
+
+</div>
+
+<footer class="wrap">
+  <a href="../index.html">BubbleGym project page</a> &middot;
+  <a href="https://github.com/stanford-gfxsim/BubbleGym">Code and data on GitHub</a>
+</footer>
+
+<script src="../results/experiments/page.js"></script>
+
+</body>
+</html>

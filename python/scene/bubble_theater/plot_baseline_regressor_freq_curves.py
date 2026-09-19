@@ -22,7 +22,7 @@ them before running, or point the flags at your own copies):
   ``trackedBubInfo_Minnaert.txt`` -- written by
   ``render_bubble_theater.py`` for that scene; the CSV's row count also sets N.
   Default results root: ``results/bubble_theater/``.
-* ``results/baseline_regressors_8feat_bubblegym_10k/baseline_metrics.json`` --
+* ``results/experiments/table02_regressor_comparison/baseline_metrics.json`` --
   the hyperparameters chosen by
   ``python/freq_model/regression/baseline_regressors_8feat.py``
   (``--baseline-metrics`` to override).
@@ -101,7 +101,7 @@ except ImportError as _exc:  # pragma: no cover - only reached on --stacked
     DEFAULT_DATASET = None
 
 BASELINE_METRICS_JSON = (
-    REPO_ROOT / "results" / "baseline_regressors_8feat_bubblegym_10k" / "baseline_metrics.json"
+    REPO_ROOT / "results" / "experiments" / "table02_regressor_comparison" / "baseline_metrics.json"
 )
 SCENES_DEFAULT = ("ellipsoid", "curl_noise", "enright_test")
 PROCEDURAL_ROOT = REPO_ROOT / "dataset" / "bubble_theater"

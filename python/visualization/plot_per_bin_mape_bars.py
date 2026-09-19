@@ -201,8 +201,8 @@ def main() -> None:
     parser.add_argument(
         "--thumbnail-cache-dir",
         type=Path,
-        default=Path("dataset/2016tim/thumbnail_transparent"),
-        help="Cache directory for transparent-background tim2016 thumbnails "
+        default=Path("dataset/langlois2016/thumbnail_transparent"),
+        help="Cache directory for transparent-background langlois2016 thumbnails "
              "(reuses cached PNGs; renders missing ones via PyVista).",
     )
     parser.add_argument(
@@ -229,13 +229,13 @@ def main() -> None:
         "--thumb-mesh-color",
         type=str,
         default="#bcd4f5",
-        help="Light-blue mesh face color for the rendered tim2016 thumbnails.",
+        help="Light-blue mesh face color for the rendered langlois2016 thumbnails.",
     )
     parser.add_argument(
         "--thumb-edge-color",
         type=str,
         default="#2f4a6d",
-        help="Edge color for the rendered tim2016 thumbnails.",
+        help="Edge color for the rendered langlois2016 thumbnails.",
     )
     parser.add_argument(
         "--force-rerender",

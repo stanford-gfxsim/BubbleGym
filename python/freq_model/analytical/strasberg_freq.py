@@ -13,9 +13,9 @@ tensor, I_ij = (1 / V) integral_V (r^2 delta_ij - x_i x_j) dV, units length^2.
 Passing the un-normalized Mirtich output is the single most common mistake
 here; `strasberg_frequency` raises on the resulting volume mismatch.
 
-The triaxial-ellipsoid capacitance uses the Landau-Lifshitz elliptic-integral
-form via Carlson R_F (`scipy.special.elliprf`): numerically equivalent to the
-Kraniotis 2013 Appell-F1 closed form but O(1).
+The triaxial-ellipsoid capacitance uses the Landau-Lifshitz (1984) elliptic-
+integral form, evaluated through Carlson's symmetric integral R_F (Carlson
+1995; `scipy.special.elliprf`), which is O(1) per call.
 """
 
 from __future__ import annotations
@@ -113,7 +113,8 @@ def ellipsoid_capacitance(a: np.ndarray) -> float:
     Verified limits:
         sphere   a1=a2=a3=R           ->  C = R
         prolate  a1=a2=a < c=a3       ->  C = sqrt(c^2 - a^2) / arccosh(c/a)
-        oblate   a1 < a2=a3=a         ->  C = sqrt(a^2 - a1^2) / arcsin(e_std)
+        oblate   a1 < a2=a3=a         ->  C = sqrt(a^2 - a1^2) / arcsin(e),
+                                          e = sqrt(a^2 - a1^2) / a
         disk     a1 -> 0, a2=a3=a     ->  C = 2 a / pi
     """
     a = np.asarray(a, dtype=float)

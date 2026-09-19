@@ -78,7 +78,7 @@ def export_worst_cases(
             src = str(row["source"]) if has_source and pd.notna(row.get("source", None)) else ""
             # Strict per-source routing: if `src` matches a registered key, only
             # look in that directory. Cross-source fallback would silently emit a
-            # wrong thumbnail because Tim2016 and LBM share `bubble.NNNN.M.png`
+            # wrong thumbnail because Langlois2016 and LBM share `bubble.NNNN.M.png`
             # filenames.
             if src and src in by_source:
                 chosen_dir = by_source[src]

@@ -44,7 +44,9 @@ DATASET_10K = REPO_ROOT / "dataset" / "bubble_gym" / "dataset_bubblegym_10k.csv"
 MODEL_DIR_10K = (
     REPO_ROOT / "python" / "freq_model" / "output" / "output_8feature_direct_bubblegym_10k"
 )
-BASELINE_METRICS_10K = REPO_ROOT / "results" / "baseline_regressors_8feat_bubblegym_10k" / "baseline_metrics.json"
+BASELINE_METRICS_10K = (
+    REPO_ROOT / "results" / "experiments" / "table02_regressor_comparison" / "baseline_metrics.json"
+)
 
 # FEATURE_COLS order of the trainer: i11_over_i00, i22_over_i00, then chull cols.
 CHULL_COLS = ("non_sph_va", "non_sph_vm", "non_sph_w", "eta_V", "eta_A", "eta_M")

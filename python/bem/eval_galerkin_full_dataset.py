@@ -671,6 +671,14 @@ def _main() -> None:
         )
         return
 
+    import sys as _sys
+
+    if str(_REPO_ROOT / "python") not in _sys.path:
+        _sys.path.insert(0, str(_REPO_ROOT / "python"))
+    from utils.mesh_archive import require_mesh_root
+
+    require_mesh_root(args.mesh_root)
+
     print(f"[main] dataset     = {args.dataset}")
     print(f"[main] mesh_root   = {args.mesh_root}")
     print(f"[main] out_dir     = {args.out_dir}")

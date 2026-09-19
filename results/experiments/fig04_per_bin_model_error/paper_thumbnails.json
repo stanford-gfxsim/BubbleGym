@@ -1,0 +1,18 @@
+{
+  "what": "The ten bubbles rendered under the published Fig. 4, one per bin, in bin order.",
+  "rule": "Per bin of selected_rows.csv (the original 100-bubble set, binned on 1 - Phi_VA): among VOF bubbles, the one whose non_sphericity is nearest the bin median; an exact tie (two middle bubbles of an even-count bin) goes to the lower row_10k. This is the rule of plot_per_bin_mape_bars.py, which did not record its choice. plot_fig04_wadell_panel.py re-derives the ids with it and stops if they differ from the list below.",
+  "how_verified": "Independently of the rule, each id was identified by matching its render's silhouette in the published PNG against the shipped 100x100 renders of all 10,000 benchmark bubbles; the rule reproduces all ten. Seven bins contain an exact median tie, and ordering the ties by row_10k is the only ordering tried (file, row_10k, name or nonsphericity, each ascending and descending) that reproduces every one.",
+  "note": "All ten are among the 100 bubbles every retrained model held out of training. Four differ from selected_rows.csv's is_bin_thumbnail flags, which record a different choice.",
+  "mesh_ids": [
+    "VOF/bubble.0284.21.obj",
+    "VOF/bubble.0131.16.obj",
+    "VOF/bubble.0360.74.obj",
+    "VOF/bubble.0188.14.obj",
+    "VOF/bubble.0305.66.obj",
+    "VOF/bubble.0224.44.obj",
+    "VOF/bubble.0231.16.obj",
+    "VOF/bubble.0301.46.obj",
+    "VOF/bubble.0354.30.obj",
+    "VOF/bubble.0044.15.obj"
+  ]
+}

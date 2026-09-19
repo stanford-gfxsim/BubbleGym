@@ -39,7 +39,7 @@ COLUMN_WIDTH_IN = 243.15 / 72.0
 STAGES: list[tuple[str, str, str]] = [
     ("lbm", "LBM simulation", "#3B7DD8"),
     ("tracking", "Bubble tracking", "#E8613C"),
-    ("dump", "Phase field/bubble tag dump I/O", "#17BECF"),
+    ("dump", "VOF field/bubble tag dump I/O", "#17BECF"),
     ("mesh", "Mesh extraction", "#F0A30A"),
     ("freq", "Frequency estimation", "#E377C2"),
     ("audio", "Audio synthesis", "#2CA02C"),
@@ -59,8 +59,28 @@ RESULTS_DIR = (
 # paper's, and says nothing about it.
 DEFAULT_SCENES: list[tuple[str, Path]] = [
     ("Fruit Splash", RESULTS_DIR / "fruit08_end2end_timings.json"),
-    ("Exhale", RESULTS_DIR / "exhale15_end2end_timings.json"),
+    ("Exhalation", RESULTS_DIR / "exhale15_end2end_timings.json"),
 ]
+
+# Multi-scene (paper) layout. Ink and panel tints for the column headers, the
+# row labels, the totals and the legend frame, per theme.
+INK = {"light": "#1E2A4A", "dark": "#E8ECF2"}
+HEADER_FILL = {
+    "light": {"bem": "#E2E8F0", "ours": "#D6E4F7"},
+    "dark": {"bem": "#2A313B", "ours": "#23344D"},
+}
+LEGEND_FILL = {"light": "#F1F5F9", "dark": "#1E2329"}
+LEGEND_EDGE = {"light": "#CBD5E1", "dark": "#3A424A"}
+# Left strip that holds the scene names, as a fraction of the figure width.
+ROW_LABEL_W = 0.205
+# Pie axes data limits: room on the left for the stacked outside labels and
+# below for the total; the unit-radius pie sits at x = 0. Only the surrogate
+# column has outside labels, so the BEM column is cropped to the pie and its
+# axes narrowed to keep the same scale -- otherwise the unused margin opens a
+# wide gap between the scene names and the BEM pies.
+PIE_XLIM = (-1.62, 1.08)
+BEM_XLIM = (-1.08, 1.08)
+PIE_YLIM = (-1.44, 1.30)
 
 LABEL_FONTSIZE = 7.0
 TITLE_FONTSIZE = 7.0
@@ -199,28 +219,54 @@ def plot(out_path: Path, scenes: list[tuple[str, dict[str, dict[str, float]]]],
     # Explicit layout rather than constrained_layout: the pie axes force a 1:1
     # aspect, which the layout engine resolves by leaving a large hole between
     # the pies and the legend and by clipping the two-line titles.
+    theme = "dark" if dark else "light"
+    ink = INK[theme]
     if multi:
-        # Bands are placed by hand, top to bottom: one row of column titles,
-        # then per scene a header line and a band of pies, then the legend.
-        # subplots(hspace=...) cannot express this -- the pie axes take a 1:1
-        # aspect, so their drawn height is set by the column width and any
-        # space the grid reserves beyond that becomes a gap the header text
-        # then collides with.
-        titles_h, head_h, pie_h, legend_h = 0.15, 0.06, 1.50, 0.54
-        fig_h = titles_h + n_rows * (head_h + pie_h) + legend_h
-        fig = plt.figure(figsize=(COLUMN_WIDTH_IN, fig_h))
-        pie_w_frac = pie_h / COLUMN_WIDTH_IN
-        x0 = [0.5 - pie_w_frac - 0.005, 0.5 + 0.005]
+        # Bands placed by hand, top to bottom: the boxed column headers, one
+        # band of pies per scene with its name in a left strip, then the framed
+        # legend. The pie axes take a 1:1 aspect, so each band's height follows
+        # from the column width rather than from a grid.
+        from matplotlib.patches import FancyBboxPatch
 
-        rows, heads = [], []
+        titles_h, gap_h, legend_h = 0.20, 0.06, 0.40
+        span_x = PIE_XLIM[1] - PIE_XLIM[0]
+        bem_span_x = BEM_XLIM[1] - BEM_XLIM[0]
+        span_y = PIE_YLIM[1] - PIE_YLIM[0]
+        # Both columns share one data-to-figure scale; the BEM one is narrower.
+        ours_w = (1.0 - ROW_LABEL_W - 0.004) / (1.0 + bem_span_x / span_x)
+        col_w = [ours_w * bem_span_x / span_x, ours_w]
+        pie_h = ours_w * COLUMN_WIDTH_IN * span_y / span_x
+        fig_h = titles_h + n_rows * pie_h + (n_rows - 1) * gap_h + legend_h
+        fig = plt.figure(figsize=(COLUMN_WIDTH_IN, fig_h))
+        x0 = [ROW_LABEL_W, ROW_LABEL_W + col_w[0]]
+        # Header boxes centre on the pies, not on the axes, and share one width.
+        pie_cx = [x0[c] + col_w[c] * (0.0 - lim[0]) / (lim[1] - lim[0])
+                  for c, lim in enumerate((BEM_XLIM, PIE_XLIM))]
+        head_w = min(col_w[0], 2.0 * (1.0 - pie_cx[1])) - 0.02
+
+        # Column headers: a tinted rounded box per solver, spanning its column.
+        head_y = (fig_h - titles_h + 0.035) / fig_h
+        head_hh = (titles_h - 0.065) / fig_h
+        for c, (pkey, ptitle) in enumerate(panels):
+            fig.patches.append(FancyBboxPatch(
+                (pie_cx[c] - head_w / 2.0, head_y), head_w, head_hh,
+                boxstyle="round,pad=0,rounding_size=0.012",
+                transform=fig.transFigure, facecolor=HEADER_FILL[theme][pkey],
+                edgecolor="none", zorder=0))
+            fig.text(pie_cx[c], head_y + head_hh / 2.0, ptitle,
+                     fontsize=TITLE_FONTSIZE, fontweight="bold", color=ink,
+                     ha="center", va="center")
+
+        rows, row_mid = [], []
         y = fig_h - titles_h
         for _r in range(n_rows):
-            y -= head_h
-            heads.append(y / fig_h)
             y -= pie_h
+            # The pie's centre (data y = 0) inside this band, for the row label.
+            row_mid.append((y + pie_h * (0.0 - PIE_YLIM[0]) / span_y) / fig_h)
             rows.append([fig.add_axes([x0[c], y / fig_h,
-                                       pie_w_frac, pie_h / fig_h])
+                                       col_w[c], pie_h / fig_h])
                          for c in range(2)])
+            y -= gap_h
     else:
         fig = plt.figure(figsize=(COLUMN_WIDTH_IN, 2.34))
         axes_grid = fig.subplots(1, 2)
@@ -261,33 +307,25 @@ def plot(out_path: Path, scenes: list[tuple[str, dict[str, dict[str, float]]]],
                 # where those wedges are large enough to read.
                 _label_wedges(ax, values, total,
                               only=("freq",) if key == "bem" else None)
-                ax.set_xlim(*PIE_LIMITS)
-                ax.set_ylim(*PIE_LIMITS)
-                # Each pie carries its own total underneath. The band header
-                # used to carry both totals and the speedup on one line, which
-                # made the reader match "24.3 h -> 1.6 h" back to the pies by
-                # position; the speedup is in the caption, not here.
-                ax.text(0.0, TOTAL_Y, fmt_duration(total),
-                        ha="center", va="top", fontsize=TOTAL_FONTSIZE)
+                ax.set_xlim(*(BEM_XLIM if key == "bem" else PIE_XLIM))
+                ax.set_ylim(*PIE_YLIM)
+                ax.set_aspect("equal")
+                # Each pie carries its own total underneath, bold: it is the
+                # headline number for that pie. The speedup is in the caption.
+                ax.text(0.0, TOTAL_Y, fmt_duration(total), ha="center",
+                        va="top", fontsize=TOTAL_FONTSIZE, fontweight="bold",
+                        color=ink)
             if not multi:
                 ax.set_title(f"{title}\n{fmt_duration(total)}",
                              fontsize=TITLE_FONTSIZE, pad=2.0)
-            elif r == 0:
-                # The solver names label the columns once, at the very top;
-                # each scene's totals live in its header line instead.
-                fig.text(ax.get_position().x0 + pie_w_frac / 2.0,
-                         1.0 - titles_h / fig_h + 0.004, title,
-                         fontsize=TITLE_FONTSIZE, fontweight="bold",
-                         ha="center", va="bottom")
 
         if multi:
-            # Hung from the top of the pie band rather than sitting above it: the
-            # pie is a unit circle in axes that run to PIE_LIMITS, so the top of
-            # the band is empty and the label can drop into it, next to the pie
-            # it names instead of floating in a strip of its own.
-            fig.text(0.012, heads[r] + 0.002, scene_label,
-                     fontsize=SCENE_FONTSIZE, fontweight="bold",
-                     ha="left", va="top")
+            # Scene name in the left strip, centred on its pies. A two-word
+            # name wraps so the strip can stay narrow.
+            name = scene_label.replace(" ", "\n") if " " in scene_label else scene_label
+            fig.text(0.012, row_mid[r], name, fontsize=SCENE_FONTSIZE,
+                     fontweight="bold", color=ink, ha="left", va="center",
+                     linespacing=0.95)
 
     handles, labels = [], []
     for key, name, color in STAGES:
@@ -302,10 +340,27 @@ def plot(out_path: Path, scenes: list[tuple[str, dict[str, dict[str, float]]]],
             text = f"{name} — {fmt_duration(scenes[0][1]['bem'][key])}"
         handles.append(Patch(facecolor=color, edgecolor="none"))
         labels.append(text)
-    fig.legend(handles, labels, loc="lower center", bbox_to_anchor=(0.5, 0.0),
-               ncols=2 if multi else 1, frameon=False, fontsize=LEGEND_FONTSIZE,
-               handlelength=1.1, handleheight=0.9, handletextpad=0.5,
-               labelspacing=0.4, columnspacing=1.0, borderaxespad=0.2)
+    if multi:
+        # Framed three-column legend spanning the figure. Columns fill
+        # top-to-bottom, so STAGES order gives (LBM, tracking), (dump, mesh),
+        # (frequency, audio).
+        leg = fig.legend(handles, labels, loc="lower center",
+                         bbox_to_anchor=(0.5, 0.004), ncols=3, frameon=True,
+                         fancybox=True, fontsize=LEGEND_FONTSIZE,
+                         handlelength=0.9, handleheight=0.9, handletextpad=0.4,
+                         labelspacing=0.35, columnspacing=0.7,
+                         borderpad=0.45, borderaxespad=0.15)
+        frame = leg.get_frame()
+        frame.set_facecolor(LEGEND_FILL[theme])
+        frame.set_edgecolor(LEGEND_EDGE[theme])
+        frame.set_linewidth(0.5)
+        for t in leg.get_texts():
+            t.set_color(ink)
+    else:
+        fig.legend(handles, labels, loc="lower center", bbox_to_anchor=(0.5, 0.0),
+                   ncols=1, frameon=False, fontsize=LEGEND_FONTSIZE,
+                   handlelength=1.1, handleheight=0.9, handletextpad=0.5,
+                   labelspacing=0.4, columnspacing=1.0, borderaxespad=0.2)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     # The wedge colours carry the meaning and read on either ground; only the

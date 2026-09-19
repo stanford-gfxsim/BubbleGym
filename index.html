@@ -133,7 +133,9 @@
   /* ---- hero: the interactive dataset explorer ---- */
   .hero{border:1px solid var(--rule); border-radius:8px; overflow:hidden;
         background:var(--figure-bg)}
-  .hero iframe{display:block; width:100%; height:clamp(560px,76vh,880px); border:0}
+  /* Tall enough for the explorer's control panel to stand open without being
+     clipped; the panel scrolls internally below that. */
+  .hero iframe{display:block; width:100%; height:clamp(640px,82vh,960px); border:0}
   @media (max-width:700px){ .hero iframe{height:440px} }
   /* Widen past the text column: the negative margin recentres the wider box. */
   .hero-wide{width:var(--hero-w); margin-left:calc((100% - var(--hero-w)) / 2)}
@@ -268,6 +270,7 @@
     <span class="brand">BubbleGym</span>
     <a class="item" href="#news">News</a>
     <a class="item" href="#abstract">Abstract</a>
+    <a class="item" href="dataset/index.html">Dataset</a>
     <a class="item" href="#video">Video</a>
     <span class="navdrop">
       <a class="item" href="#demos" aria-haspopup="true">Demos &#9662;</a>
@@ -343,7 +346,7 @@
       <li>
         <span class="when">Sept 2026</span>
         <span class="what">Code, trained models, and the 10k benchmark dataset are
-          released on <a href="https://github.com/zhehaoli1999/BubbleGym-OpenSource">GitHub</a>.</span>
+          released on <a href="https://github.com/stanford-gfxsim/BubbleGym">GitHub</a>.</span>
       </li>
       <li>
         <span class="when">Aug 2026</span>
@@ -396,7 +399,7 @@
         <span class="t">Supplement</span>
         <span class="s">ACM Digital Library &middot; supplemental material</span>
       </a>
-      <a href="https://github.com/zhehaoli1999/BubbleGym-OpenSource">
+      <a href="https://github.com/stanford-gfxsim/BubbleGym">
         <span class="ico">&#128187;</span>
         <span class="t">Code</span>
         <span class="s">GitHub &middot; dataset and models</span>
@@ -437,7 +440,7 @@
         </span>
       </a>
 
-      <a class="demo" href="dataset/bubble_gym/dataset_bubblegym_10k.csv">
+      <a class="demo" href="dataset/index.html">
         <span class="shot">
           <span class="numeral">
             <span class="big">10,000</span>
@@ -446,16 +449,16 @@
         </span>
         <span class="body">
           <span class="t">Benchmark dataset</span>
-          <span class="s">One CSV carrying every shape descriptor and reference
-            frequency, alongside the meshes and thumbnails.</span>
+          <span class="s">What is in the set, what each column means, and where
+            to get the CSV and the meshes.</span>
         </span>
       </a>
 
-      <a class="demo" href="https://github.com/zhehaoli1999/BubbleGym-OpenSource">
+      <a class="demo" href="https://github.com/stanford-gfxsim/BubbleGym">
         <span class="shot">
-<pre class="snippet"><code>git clone https://github.com/zhehaoli1999/\
-BubbleGym-OpenSource
-cd BubbleGym-OpenSource
+<pre class="snippet"><code>git lfs install
+git clone https://github.com/stanford-gfxsim/BubbleGym.git
+cd BubbleGym
 pip install -r requirements.txt
 
 # dataset/    BEM ground truth + meshes
@@ -546,13 +549,19 @@ pip install -r requirements.txt
 
   <section id="acknowledgments">
     <h2>Acknowledgments</h2>
+    <!-- Kept word for word in step with the acks block in the paper's main.tex.
+         If one changes, change the other. -->
     <p>
-      We thank the anonymous reviewers for their feedback, and Adobe and
-      Activision for their support. Houdini software was provided courtesy of
-      SideFX. This work was supported in part by ONR Grant N000142512024.
-      Zhehao Li acknowledges support from the Stanford School of Engineering
-      Fellowship. Wei Li acknowledges support from the Shanghai Pujiang Program
-      (25PJD058) and Shanghai Jiao Tong University startup funds.
+      The authors thank the anonymous reviewers for their constructive feedback,
+      and Adobe and Activision for support. Houdini software courtesy of SideFX.
+      This work was supported in part by the Office of Naval Research (ONR)
+      under Grant N000142512024, &ldquo;Advancing Underwater Sound Synthesis
+      Techniques for Ocean Acoustics.&rdquo; Zhehao Li acknowledges support from
+      the Stanford School of Engineering Fellowship. Wei Li acknowledges the
+      Shanghai Pujiang Program (25PJD058) and SJTU&rsquo;s startup funds. We
+      used AI tools, including Claude (Anthropic), for editing and coding
+      assistance; the authors take full responsibility for the content of this
+      paper.
     </p>
   </section>
 
@@ -601,9 +610,16 @@ pip install -r requirements.txt
      after a flash of the wrong one. */
   /* Below the tap-through breakpoint the iframe is display:none, so giving
      it a src would download ~6 MB that is never shown. */
+  /* The explorer is a single ~6 MB document, so browsers hold on to it hard.
+     Bump this token whenever it is regenerated, or a reader keeps the old copy
+     and any fix to it appears not to have happened. */
+  var EXPLORER_BUILD = '2026-09-16e';
   var wide = !(window.matchMedia && window.matchMedia('(max-width:700px)').matches);
   if (frame && wide) {
-    frame.src = frame.getAttribute('data-src') + '?theme=' + current();
+    frame.src = frame.getAttribute('data-src')
+              + '?theme=' + current() + '&v=' + EXPLORER_BUILD;
+    /* Belt and braces: the query parameter sets the first paint, the message
+       covers a copy that came from cache with the wrong one baked in. */
     frame.addEventListener('load', tellExplorer);
   }
 

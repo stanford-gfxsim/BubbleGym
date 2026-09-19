@@ -1,0 +1,23 @@
+The data in this directory, and the separately distributed BubbleGym benchmark
+mesh archive, are licensed under the Creative Commons Attribution 4.0
+International License (CC BY 4.0).
+
+You are free to share and adapt the material for any purpose, including
+commercially, provided you give appropriate credit, provide a link to the
+licence, and indicate if changes were made.
+
+Licence summary: https://creativecommons.org/licenses/by/4.0/
+Legal code:      https://creativecommons.org/licenses/by/4.0/legalcode
+
+Attribution:
+  Zhehao Li, Kui Wu, Wei Li, and Doug L. James. 2026. BubbleGym: A Practical
+  Shape-to-Frequency Model for Acoustic Bubbles. SIGGRAPH Asia 2026 Conference
+  Papers.
+
+The benchmark rows whose `source` is VOF derive from the simulations of:
+  Timothy R. Langlois, Changxi Zheng, and Doug L. James. 2016. Toward Animating
+  Water with Complex Acoustic Bubbles. ACM Transactions on Graphics 35(4),
+  Article 95.
+
+The code in this repository is licensed separately under the MIT License; see
+the LICENSE file at the repository root.

@@ -15,11 +15,15 @@ Three Wadell-style sphericity deviations, all zero for a sphere::
 Three convex-hull ratios, measuring deviation from the convex envelope::
 
     eta_V = V(bubble) / V(hull)     in (0, 1]
-    eta_A = A(bubble) / A(hull)     >= 1 for typical concave shapes
-    eta_M = M(bubble) / M(hull)     >= 1 for typical concave shapes
+    eta_A = A(bubble) / A(hull)     usually just below 1
+    eta_M = M(bubble) / M(hull)     usually just above 1, rising steeply
 
-The disparity between ``eta_A`` and ``eta_M`` is the cleanest signal of
-dendritic structure: spikes push ``eta_A`` up while leaving ``eta_M`` near 1.
+All three are exactly 1 for a convex body. On the 10k benchmark ``eta_A`` is
+below 1 for 99.5 % of bubbles (median 0.998, min 0.44): a dumbbell or a split
+bubble has less area than the hull wrapped around it, which is geometrically
+correct, not an error. ``eta_M`` is above 1 for 99.9 % (median 1.000, max 3.34),
+and it is the ratio that grows with deformation, because concave regions add
+mean curvature that the hull smooths away.
 
 Validity of Phi_VA
 ------------------
@@ -169,7 +173,14 @@ def _edge_dihedral_table(v: np.ndarray, f: np.ndarray) -> dict[str, np.ndarray]:
 
 
 def mean_curvature_integral(v: np.ndarray, f: np.ndarray) -> float:
-    """``M = sum_e l_e * theta_e / 2`` over interior edges."""
+    """``M = sum_e l_e * theta_e / 2`` over interior edges.
+
+    Precondition: a closed, 2-manifold mesh, so every edge is shared by
+    exactly two faces. The edge table pairs consecutive sorted edge keys: an
+    edge on three faces would be counted twice and a boundary edge silently
+    dropped, with no error. ``load_obj_mesh`` enforces watertightness, so the
+    normal path is safe; calling this directly on an unchecked mesh is not.
+    """
     t = _edge_dihedral_table(v, f)
     return float(0.5 * np.sum(t["l"] * t["theta"]))
 
@@ -208,7 +219,11 @@ def willmore_energy_vertex(v: np.ndarray, f: np.ndarray) -> float:
 def curvature_integrals_from_vf(
     v: np.ndarray, f: np.ndarray, *, target_volume: float | None = 1.0
 ) -> dict[str, float]:
-    """Return ``{M, W_vertex, area, volume}`` on a (rescaled) mesh."""
+    """Return ``{M, W_vertex, area, volume}`` on a (rescaled) mesh.
+
+    Same precondition as :func:`mean_curvature_integral`: the mesh must be
+    closed and 2-manifold, or ``M`` is wrong without an error.
+    """
     if target_volume is not None:
         v = vertices_scaled_to_target_volume(v, f, target_volume)
     return {

@@ -5,14 +5,12 @@ set per bin (JND thinning in frequency, then farthest-point sampling), and
 reports MAPE / max APE / RMSE(log f) per bin for three predictors: Minnaert,
 Strasberg, and the network. Feeds visualization/plot_per_bin_mape_bars.py.
 
-Verified provenance of the shipped 10x10 ablation panel: it was built with
-``--non-sphericity-metric inertia_aniso --per-bin 10``, NOT with the Wadell
-``phi`` metric the paper's Fig. 4 text calls for. Confirmed by matching
-``bin_edges_selected`` in the shipped ``curated_eval.json`` against the ten
-quantile edges of inertia anisotropy over the 1500-row test split: min 0.0329
-and max 43.676 reproduce exactly. The defaults below are deliberately left at
-the values that produced the shipped panel -- do not "fix" them to match the
-paper text without regenerating every downstream artifact.
+The supplement's feature- and width-ablation panels were built with
+``--non-sphericity-metric inertia_aniso --per-bin 10``, and the supplement
+captions say so; the default metric is left at ``inertia_aniso`` to match them.
+The paper's Fig. 4 is a different panel, binned on Wadell nonsphericity by
+``eval_alt_bin_sets.py``. How the ablation binning was verified is recorded in
+``results/experiments/supp_table01_feature_ablation/README.md``.
 """
 
 from __future__ import annotations
@@ -82,7 +80,7 @@ def _filter_by_split(df: pd.DataFrame, split_json: Path, split: str) -> pd.DataF
     Filter dataset to a saved train/val/test split.
 
     Prefers `mesh_id` (e.g. "VOF/bubble.0019.0.obj"), which is unique
-    across the combined Tim2016 + LBM datasets, and falls back to
+    across the combined Langlois2016 + LBM datasets, and falls back to
     `mesh_filename` for legacy splits.
 
     This ensures stratified eval samples only from the held-out test set
@@ -306,15 +304,19 @@ def add_nonsphericity_chull_features(df: pd.DataFrame) -> pd.DataFrame:
 def non_sphericity_chull_dendritic(df: pd.DataFrame) -> np.ndarray:
     """Dendritic-signal scalar built from convex-hull eta features.
 
-    Per the user's analysis: filaments push eta_A way above 1 while keeping
-    eta_M near 1, so we use
+    Computes
 
         dendritic = max(eta_A - 1, 0) + max(1 - eta_V, 0) - max(eta_M - 1, 0)
 
-    Higher values mean "more dendritic" (high surface-area excess and low
-    convexity ratio relative to the mean-curvature excess). Pure convex
-    shapes give 0; smooth concave dents (eta_V < 1 but eta_A ~ eta_M ~ 1) give
-    a small positive value; long thin filament structures push it up.
+    Caution: this does not behave as its name suggests. The formula assumed
+    filaments push ``eta_A`` above 1 while ``eta_M`` stays near 1, but on the
+    10k benchmark the opposite holds -- ``eta_A`` is below 1 for 99.5 % of
+    bubbles and ``eta_M`` above 1 for 99.9 %. The first term is therefore ~0
+    almost everywhere and the subtracted ``eta_M`` term dominates, so the most
+    deformed bubbles get the *most negative* scores. Its correlation with
+    ``1 - Phi_VA`` is 0.36. It is a stratification axis only; no model feature
+    and no paper result depends on it. See ``nonspherical_features`` for the
+    measured ranges.
     """
     _require_cols(df, ["eta_V", "eta_A", "eta_M"], "chull_dendritic non-sphericity")
     eta_V = pd.to_numeric(df["eta_V"], errors="coerce").to_numpy(dtype=np.float64)
@@ -624,7 +626,7 @@ def emit_bin_thumbnails(
             mesh_name = str(row.get("mesh_filename", ""))
             src = str(row["source"]) if has_source and pd.notna(row.get("source", None)) else ""
             # Strict per-source routing: if `src` matches a registered key, only
-            # look in that directory. Cross-source fallback (e.g. lbm row -> tim2016
+            # look in that directory. Cross-source fallback (e.g. lbm row -> langlois2016
             # dir) is forbidden because the two datasets share `bubble.NNNN.M.png`
             # filename conventions and would silently produce wrong thumbnails.
             if src and src in by_source:
@@ -1030,14 +1032,8 @@ def main() -> None:
         help=(
             "inertia_aniso (default): sqrt((i11/i00-1)^2 + (i22/i00-1)^2). "
             "phi: Wadell Phi from V,S; stratification uses (1-Phi) so higher = less spherical. "
-            "chull_dendritic: max(eta_A-1,0) + max(1-eta_V,0) - max(eta_M-1,0), positive on "
-            "filament/dendritic shapes. "
-            "VERIFIED: the shipped 10x10 ablation panel was produced with "
-            "inertia_aniso and --per-bin 10 (bin_edges_selected in the shipped "
-            "curated_eval.json reproduces the ten quantile edges of inertia "
-            "anisotropy over the 1500-row test split exactly, min 0.0329 / max "
-            "43.676), whereas the paper's Fig. 4 text calls for phi (Wadell). "
-            "The default is left at inertia_aniso to match the shipped artifact."
+            "chull_dendritic: max(eta_A-1,0) + max(1-eta_V,0) - max(eta_M-1,0); despite "
+            "the name, the most deformed bubbles score lowest on the 10k benchmark."
         ),
     )
     parser.add_argument("--bins", type=int, default=10, help="Quantile bins for non-sphericity.")
@@ -1099,7 +1095,7 @@ def main() -> None:
         type=Path,
         default=Path("dataset/bubble_gym/bubble_mesh_thumbnails_400x400/VOF"),
         help=(
-            "Directory with per-bubble PNG thumbnails for the Tim2016 6k source, used as a "
+            "Directory with per-bubble PNG thumbnails for the Langlois2016 6k source, used as a "
             "fallback for rows without a recognized 'source' tag."
         ),
     )
@@ -1403,7 +1399,7 @@ def main() -> None:
         print(f"[bins] copied {copied} thumbnails into {out_dir / 'bins'} (sources: {sources_msg})")
     else:
         print(
-            f"[bins] no usable thumbnail dirs (tim2016='{thumb_dir}', "
+            f"[bins] no usable thumbnail dirs (langlois2016='{thumb_dir}', "
             f"lbm='{lbm_thumb_dir}'); skipping bin thumbnails"
         )
 

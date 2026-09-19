@@ -506,8 +506,8 @@ def _write_tracked_bubinfo(
     """Write a single-Bub trackedBubInfo with position pinned at (0,0,0).
 
     No leading ``#``-comment header is emitted: the downstream
-    parser does not strip comment lines (it relies on the upstream
-    ``filter_tracked_bubinfo.py`` for that), so any header line whose
+    parser does not strip comment lines (it expects them removed before it
+    runs), so any header line whose
     second whitespace-token equals ``Bub`` would be misread as the actual
     Bub block start. We bypass that whole class of issue by writing only
     the structural lines.

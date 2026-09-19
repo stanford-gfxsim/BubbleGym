@@ -44,6 +44,25 @@ _TRIAL_PAIRS = {
 
 _PRECOND_CHOICES = ("none", "mass", "calderon")
 _SOLVER_CHOICES = ("gmres", "dense")
+_NONCONVERGENCE_CHOICES = ("raise", "warn", "ignore")
+
+
+class GmresNotConvergedError(RuntimeError):
+    """GMRES stopped without reaching ``gmres_tol``.
+
+    The frequency computed from such a solve is finite and plausible-looking,
+    which is exactly why it must not pass silently into a ground-truth column.
+    ``result`` holds the full result dict of the unconverged solve, so a batch
+    driver can still log its residual inputs and timings.
+    """
+
+    def __init__(self, message: str, result: dict):
+        super().__init__(message)
+        self.result = result
+
+
+class GmresNotConvergedWarning(RuntimeWarning):
+    """Issued instead of :class:`GmresNotConvergedError` under ``on_nonconvergence="warn"``."""
 
 
 def _prepare_mesh(mesh: MeshLike, *, rescale: bool) -> Tuple[np.ndarray, np.ndarray, float]:
@@ -200,6 +219,7 @@ def solve_minnaert_frequency_galerkin(
     skip_volume_rescale: bool = False,
     rescale_to_unit_volume: bool | None = None,
     rhs_orientation_tol: float | None = 1e-2,
+    on_nonconvergence: str = "raise",
     verbose: bool = False,
 ) -> dict:
     """
@@ -233,14 +253,25 @@ def solve_minnaert_frequency_galerkin(
         meshes return a plausible but wrong capacitance rather than failing.
         The residual is always reported as ``rhs_orientation_residual`` in the
         result. Pass ``None`` to disable the check.
+    on_nonconvergence :
+        What to do when GMRES stops without reaching ``gmres_tol`` (a non-zero
+        ``info``: positive when it ran out of iterations, negative on breakdown
+        or illegal input). ``"raise"`` (the default) raises
+        :class:`GmresNotConvergedError`, whose ``result`` attribute carries the
+        unconverged result; ``"warn"`` issues :class:`GmresNotConvergedWarning`
+        and returns; ``"ignore"`` returns silently. In every mode the result
+        records ``gmres_converged``. Raising is the default for the same reason
+        as the orientation check: an unconverged solve returns a finite,
+        plausible frequency, and nothing downstream can tell it apart. Both
+        batch drivers catch the error per mesh and record the row as failed.
 
     Returns
     -------
     dict with keys
         frequency, capacitance, capacitance_raw, v0, gmres_info,
-        gmres_iterations, n_dirichlet_dofs, n_neumann_dofs, n_triangles,
-        rhs_orientation_residual, wall_time_assemble_s, wall_time_solve_s,
-        trial_pair, solver, precond.
+        gmres_iterations, gmres_converged, n_dirichlet_dofs, n_neumann_dofs,
+        n_triangles, rhs_orientation_residual, wall_time_assemble_s,
+        wall_time_solve_s, trial_pair, solver, precond.
     """
     if trial_pair not in _TRIAL_PAIRS:
         raise ValueError(
@@ -250,6 +281,11 @@ def solve_minnaert_frequency_galerkin(
         raise ValueError(f"Unknown precond {precond!r}; choose from {_PRECOND_CHOICES}.")
     if solver not in _SOLVER_CHOICES:
         raise ValueError(f"Unknown solver {solver!r}; choose from {_SOLVER_CHOICES}.")
+    if on_nonconvergence not in _NONCONVERGENCE_CHOICES:
+        raise ValueError(
+            f"Unknown on_nonconvergence {on_nonconvergence!r}; "
+            f"choose from {_NONCONVERGENCE_CHOICES}."
+        )
 
     bempp_api = _import_bempp_api()
 
@@ -443,13 +479,17 @@ def solve_minnaert_frequency_galerkin(
                 f"t_assemble = {t_assemble:.3f}s   t_solve = {t_solve:.3f}s"
             )
 
-        return {
+        gmres_info = 0 if info is None else int(info)
+        # The dense path solves directly and always reports info = 0.
+        converged = gmres_info == 0
+        result = {
             "frequency": float(freq),
             "capacitance": float(c_val),
             "capacitance_raw": float(c_raw),
             "v0": float(v0),
-            "gmres_info": 0 if info is None else int(info),
+            "gmres_info": gmres_info,
             "gmres_iterations": int(gmres_iterations),
+            "gmres_converged": bool(converged),
             "n_dirichlet_dofs": n_dir,
             "n_neumann_dofs": n_neu,
             "n_triangles": int(F_.shape[0]),
@@ -460,11 +500,38 @@ def solve_minnaert_frequency_galerkin(
             "solver": solver,
             "precond": precond,
         }
+
+        if not converged and on_nonconvergence != "ignore":
+            if gmres_info > 0:
+                why = (
+                    f"it stopped after {gmres_iterations or gmres_info} iterations "
+                    f"without reaching tol={gmres_tol:g} "
+                    f"(maxiter={gmres_maxiter}, restart={gmres_restart})"
+                )
+                fix = (
+                    "Raise gmres_maxiter or gmres_restart, or check the mesh: "
+                    "badly shaped triangles slow convergence sharply."
+                )
+            else:
+                why = "it broke down or was given illegal input"
+                fix = "Check the mesh and the solver arguments."
+            message = (
+                f"GMRES did not converge (info={gmres_info}): {why}. The "
+                f"returned frequency, {freq:.6g} Hz, is not a converged "
+                f"solution and must not be used as ground truth. {fix}"
+            )
+            if on_nonconvergence == "raise":
+                raise GmresNotConvergedError(message, result)
+            warnings.warn(message, GmresNotConvergedWarning, stacklevel=2)
+
+        return result
     finally:
         restore_quad()
 
 
 __all__ = [
+    "GmresNotConvergedError",
+    "GmresNotConvergedWarning",
     "solve_minnaert_frequency_galerkin",
     "_TRIAL_PAIRS",
 ]
@@ -496,6 +563,11 @@ def _main():
     p.add_argument("--gmres-tol", type=float, default=1e-12)
     p.add_argument("--gmres-maxiter", type=int, default=4000)
     p.add_argument("--gmres-restart", type=int, default=300)
+    p.add_argument(
+        "--on-nonconvergence", default="raise", choices=_NONCONVERGENCE_CHOICES,
+        help="If GMRES stops short of --gmres-tol: raise an error (default), "
+             "warn and print the unconverged result, or ignore it.",
+    )
     p.add_argument("--quad-regular", type=int, default=6)
     p.add_argument("--quad-singular", type=int, default=6)
     p.add_argument(
@@ -534,6 +606,7 @@ def _main():
         p0=args.p0,
         rho=args.rho,
         skip_volume_rescale=args.skip_volume_rescale,
+        on_nonconvergence=args.on_nonconvergence,
         verbose=True,
     )
 

@@ -1,16 +1,17 @@
 # `python/` — what lives where
 
-74 modules in eight packages. Section numbers refer to the BubbleGym paper.
+82 Python files in eight packages, counting each `__init__.py`. Section numbers
+refer to the BubbleGym paper.
 
 | Package | Files | Role |
 |---|---:|---|
 | [`bem/`](bem) | 9 | Galerkin BEM ground truth (§4.1) |
 | [`shape_feature/`](shape_feature) | 4 | The eight shape descriptors (§4.2) |
-| [`freq_model/`](freq_model) | 26 | Network, baselines, training, evaluation, ablations (§5–6) |
+| [`freq_model/`](freq_model) | 28 | Network, baselines, training, evaluation, ablations (§5–6) |
 | [`tracked_bubinfo/`](tracked_bubinfo) | 3 | The `trackedBubInfo` format layer |
 | [`scene/`](scene) | 12 | Per-scene drivers that write each frequency column |
-| [`visualization/`](visualization) | 8 | Paper figures and the interactive HTML |
-| [`utils/`](utils) | 9 | Timing benchmarks and figure scripts |
+| [`visualization/`](visualization) | 12 | Paper figures and the interactive HTML |
+| [`utils/`](utils) | 11 | Timing benchmarks, figure scripts, the mesh-archive check |
 | [`tests/`](tests) | 3 | Unit tests |
 
 Run everything from the repo root with `PYTHONPATH=python`.
@@ -61,7 +62,10 @@ rather than returning an integral computed over an open surface.
 ## `freq_model/` — model, baselines, evaluation
 
 - **Network** (`NN/`): `bub_freq_net.py` (architecture, §5.2.2),
-  `fit_shape_freq_model.py` (the one trainer — 8 features → `log f`, Eq. 16),
+  `fit_shape_freq_model.py` (the production trainer — 8 features → `log f`,
+  Eq. 16), `fit_shape_freq_model_variants.py` (the same trainer over objective
+  and feature-set variants, used for the Fig. 4 retrains),
+  `eval_alt_bin_sets.py` (Fig. 4's panel re-binned on other descriptors),
   `nn_inference.py` (load a checkpoint and run it over per-frame features),
   `bubble_dataset.py`, `training.py`, `stratified_eval_model.py` (per-bin error,
   `--model-kind nn8`, feeding `visualization/plot_per_bin_mape_bars.py`),
@@ -82,7 +86,7 @@ rather than returning an integral computed over an open surface.
   - `aggregate_results.py` — collapses either sweep into `summary_exp{1,2}.csv`
     and the supplement's bar figures (`--dark` for the web-page copies).
   - `cross_source_generalization.py` — trains on one data source and tests on
-    the other (Tim2016 VOF vs LBM), the cross-source numbers §6 quotes.
+    the other (Langlois2016 VOF vs LBM), the cross-source numbers §6 quotes.
   - `near_duplicate_controlled_mape.py` — train/test leakage control: re-scores
     the test split with near-duplicate shapes held out.
   - `benchmark_width_timing.py` + `plot_width_timing.py` — supplement Fig. 5 and
@@ -136,6 +140,12 @@ toggles, per-bubble thumbnails with feature bars, and a light/dark theme.
 `render_dataset_thumbnails.py` renders one PNG per benchmark bubble, and
 `plot_dataset_distribution.py` holds the shared thumbnail renderer.
 
+Fig. 4 and its variants: `plot_per_bin_mape_bars.py` (the per-bin error panel),
+`plot_fig04_retrained_comparison.py` (the panel with the retrained models),
+`plot_alt_bin_sets.py` and `plot_feature_axis_panels.py` (the same panel
+re-binned on other axes), and `bin_thumbnail_strip.py`, which places the mesh
+thumbnails under each bin.
+
 ## `utils/` — timing and figure data
 
 Table 1's columns come from four of these, which are not variants of one
@@ -143,7 +153,10 @@ another: `nn8_vs_bem_timing.py` (per-bubble NN vs BEM),
 `nn8_vs_bem_all_bubbles_chunked.py` (full-scene sweep),
 `batched_nn8_inference.py` (batched GPU inference), and
 `apply_regressors_all_bubbles.py` (regressor accuracy/timing on timed meshes).
-`plot_end2end_timing_pies.py` draws Fig. 8 and `plot_single_bubble_freq.py`
+`plot_end2end_timing_pies.py` draws Fig. 8, whose surrogate frequency slice is
+measured by `time_scene_nn_step.py`, and `plot_single_bubble_freq.py`
 Fig. 7's frequency panel. `mesh_complexity_stats.py` reports vertex/face/genus
 statistics for a dataset's meshes, and `worst_case_utils.py` is shared
-tail-error helper code. Recorded outputs live in `utils/results/`.
+tail-error helper code. `mesh_archive.py` checks that the separately downloaded
+benchmark meshes are present and, if not, says where to get them. Recorded
+outputs live in `utils/results/`.

@@ -18,6 +18,10 @@ mispredicting.
 Predictions are **at unit volume**; callers recover the physical frequency with
 ``f = f_unit * V^(-1/3)`` (Sec. 4.1). Frames whose features were missing or
 non-finite come back as NaN with ``valid[i] = False``.
+
+Run it on a single mesh from the repository root::
+
+    PYTHONPATH=python python -m freq_model.NN.nn_inference bubble.obj
 """
 
 from __future__ import annotations
@@ -53,11 +57,16 @@ EXPECTED_FEATURE_COLS_8FEAT = [
 
 
 def _bubble_freq_net_cls():
-    """Import ``BubbleFreqNet`` whether or not ``freq_model/`` is on sys.path."""
+    """Import ``BubbleFreqNet`` under either import convention.
+
+    ``python/`` on the path (``PYTHONPATH=python``, what the READMEs use) gives
+    the first form. Importing the repository root as a package, which
+    ``python/tests`` does, gives the second.
+    """
     try:
         from freq_model.NN.bub_freq_net import BubbleFreqNet  # type: ignore
-    except ImportError:  # pragma: no cover - legacy sys.path layout
-        from freq_model.NN.bub_freq_net import BubbleFreqNet  # type: ignore
+    except ImportError:  # pragma: no cover - depends on how the caller imports
+        from python.freq_model.NN.bub_freq_net import BubbleFreqNet  # type: ignore
     return BubbleFreqNet
 
 
@@ -202,3 +211,87 @@ def predict_nn_unit_for_frames_inertia_8feat_direct(
     log_pred = target_scaler.inverse_transform(y_norm).flatten().astype(np.float64)
     f_unit[valid] = np.exp(log_pred)
     return f_unit, valid
+
+
+# ---------------------------------------------------------------------------
+# Single-mesh command line
+# ---------------------------------------------------------------------------
+
+
+def _default_artifact_dir() -> Path:
+    """The production artifact shipped with the repository."""
+    return (
+        Path(__file__).resolve().parents[2]
+        / "freq_model"
+        / "output"
+        / "output_8feature_direct_bubblegym_10k"
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Predict one mesh's resonant frequency and print it.
+
+    The module is a library first; this exists because reading a frequency off
+    a single OBJ is the first thing most people want to do, and wiring the
+    feature extractor to the model by hand to get there is a poor welcome.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Predict a bubble's resonant frequency from its mesh."
+    )
+    parser.add_argument("mesh", type=Path, help="closed triangle mesh (.obj)")
+    parser.add_argument(
+        "--artifacts",
+        type=Path,
+        default=None,
+        help="model artifact directory (default: the shipped production model)",
+    )
+    parser.add_argument(
+        "--radius-mm",
+        type=float,
+        default=None,
+        help=(
+            "report the frequency of an equal-volume bubble of this radius. "
+            "Without it the unit-volume frequency is printed."
+        ),
+    )
+    args = parser.parse_args(argv)
+
+    if not args.mesh.is_file():
+        parser.error(f"mesh not found: {args.mesh}")
+    artifacts = args.artifacts or _default_artifact_dir()
+    if not artifacts.is_dir():
+        parser.error(f"artifact directory not found: {artifacts}")
+
+    try:
+        from shape_feature.build_dataset import extract_features_one
+    except ImportError:  # pragma: no cover - depends on how the caller imports
+        from python.shape_feature.build_dataset import extract_features_one
+
+    _, feats = extract_features_one((0, str(args.mesh)))
+    if feats.get("status") != "ok":
+        print(f"feature extraction failed: {feats.get('status')}")
+        return 1
+
+    principal = np.asarray(
+        feats.get("inertia_principal_unit", [float("nan")] * 3), dtype=np.float64
+    )
+    f_unit, valid = predict_nn_unit_for_frames_inertia_8feat_direct(
+        [feats], [principal], artifacts
+    )
+    if not bool(valid[0]):
+        print("the model could not score this mesh: a feature was missing or non-finite")
+        return 1
+
+    print(f"unit-volume frequency : {float(f_unit[0]):.6f} Hz")
+    if args.radius_mm is not None:
+        r = args.radius_mm * 1e-3
+        volume = (4.0 / 3.0) * math.pi * r ** 3
+        f_phys = float(f_unit[0]) * volume ** (-1.0 / 3.0)
+        print(f"at r = {args.radius_mm:g} mm       : {f_phys:.2f} Hz")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
