@@ -70,6 +70,9 @@ for _p in (PYTHON_ROOT, FREQ_MODEL_ROOT):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
+# numpy-only, so it stays importable on the plotting-only --stacked path.
+from tracked_bubinfo import read_tracked_lines, resolve_tracked_path  # noqa: E402
+
 # baseline_regressors_8feat stubs torch.utils.tensorboard before importing the
 # trainer, so this import chain works in the tensorboard-less bubblegym env.
 #
@@ -206,7 +209,7 @@ def read_freq_curves_csv(path: Path) -> tuple[list[str], dict[str, np.ndarray]]:
 
 def parse_radius_eq(tracked_minnaert: Path) -> float:
     """Read R_eq from the leading ``Bub <id> <R_eq>`` header line."""
-    for raw in tracked_minnaert.read_text(encoding="utf-8").splitlines():
+    for raw in read_tracked_lines(tracked_minnaert):
         tok = raw.strip().split()
         if len(tok) == 3 and tok[0] == "Bub":
             return float(tok[2])
@@ -497,7 +500,9 @@ def main() -> int:
         mesh_dir = PROCEDURAL_ROOT / scene / MESH_SUBDIR
         result_dir = results_root / f"{scene}_result"
         curves_csv = result_dir / "freq_curves.csv"
-        tracked_minnaert = result_dir / "trackedBubInfo_Minnaert.txt"
+        tracked_minnaert = resolve_tracked_path(
+            result_dir / "trackedBubInfo_Minnaert.txt"
+        )
         for p in (mesh_dir, result_dir):
             if not p.is_dir():
                 raise SystemExit(f"[{scene}] missing directory: {p}")

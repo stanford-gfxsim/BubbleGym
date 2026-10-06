@@ -105,6 +105,9 @@ and the FluidSound renderer, both separate projects.
 
 - `io.py` — parse blocks and sample lines, read the per-bubble header radii,
   rewrite the frequency column, optionally truncate blocks at a cutoff time.
+  The large scene files ship xz-compressed; every reader here takes
+  `trackedBubInfo_<model>.txt` or `.txt.xz` interchangeably, and a `.xz` output
+  path is written compressed.
 - `mesh_index.py` — discover the per-bubble marching-cubes OBJ tree that
   accompanies a tracked file, resolve the simulation timestep, and map each
   sample line to its nearest mesh frame.

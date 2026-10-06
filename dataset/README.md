@@ -4,9 +4,9 @@
 | --- | --- |
 | `bubble_gym/` | the 10k benchmark: `dataset_bubblegym_10k.csv`, mesh thumbnails |
 | `bubble_theater/` | the three procedural sequences of the teaser, `trackedBubInfo_{BEM,NN,Minnaert,Ellipsoid}.txt` and the per-frame meshes. The frequency curves they produce live in `results/experiments/fig01_bubble_theater/` |
-| `single_rising_bubble/` | Fig. 7 scene, `trackedBubInfo_{BEM,NN,Minnaert}.txt`|
-| `fruit_splash/` | Fig. 5 scene, `trackedBubInfo_{BEM,NN,Minnaert}.txt` |
-| `exhalation/` | Fig. 6 scene, `trackedBubInfo_{BEM,NN,Minnaert}.txt` |
+| `single_rising_bubble/` | Fig. 7 scene, `trackedBubInfo_{BEM,NN,Minnaert}.txt.xz`|
+| `fruit_splash/` | Fig. 5 scene, `trackedBubInfo_{BEM,NN,Minnaert}.txt.xz` |
+| `exhalation/` | Fig. 6 scene, `trackedBubInfo_{BEM,NN,Minnaert}.txt.xz` |
 
 ## The benchmark meshes
 
@@ -48,6 +48,20 @@ repository remains under MIT; see the top-level `LICENSE`. If you use the data,
 cite BubbleGym, and for the `VOF` bubbles also cite Langlois et al. 2016.
 
 ## trackedBubInfo format
+
+The three large scenes -- `exhalation/`, `fruit_splash/` and
+`single_rising_bubble/` -- ship their files xz-compressed as
+`trackedBubInfo_<model>.txt.xz`: the raw text is 5.1 GB and 14% of that
+compressed. `bubble_theater/` is a few KB per file and stays plain text. Unpack
+a compressed one with
+
+```bash
+xz -dk dataset/fruit_splash/trackedBubInfo_NN.txt.xz   # -k keeps the .xz
+```
+
+The Python code in this repository needs no unpacking: every reader in
+`python/tracked_bubinfo/` takes the `.txt.xz` or a plain `.txt` interchangeably,
+and `lzma` (stdlib) reads `.xz` directly if you write your own.
 
 trackedBubInfo.txt stores the bubble tracking information for the simulation. For each bubble, the format is:
 

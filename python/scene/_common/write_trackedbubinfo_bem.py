@@ -55,6 +55,7 @@ from tracked_bubinfo import (  # noqa: E402
     infer_dt_lbm,
     parse_bub_header_radii,
     parse_trackedbubinfo_blocks,
+    resolve_tracked_path,
     summarize_freqs,
     truncate_and_rewrite_blocks,
 )
@@ -170,7 +171,7 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    tracked = args.tracked.resolve()
+    tracked = resolve_tracked_path(args.tracked.resolve())
     out_path = args.out.resolve()
     print(f"Parsing trackedBubInfo base: {tracked}")
     src_lines, sample_idxs, sample_meta = parse_trackedbubinfo_blocks(tracked)

@@ -13,14 +13,21 @@ File layout::
 A *sample line* is any line whose first non-space character is a digit. Every
 function here works on the raw ``list[str]`` of lines so a caller can rewrite
 one column without disturbing the rest of the file byte-for-byte.
+
+The large scenes in ``dataset/`` ship xz-compressed
+(``trackedBubInfo_NN.txt.xz`` and friends); ``bubble_theater/``, a few KB per
+file, stays plain text. :func:`read_tracked_text`, :func:`open_tracked_text` and
+everything built on them accept either spelling, so a path written down before
+the switch still resolves.
 """
 
 from __future__ import annotations
 
+import lzma
 import math
 import re
 from pathlib import Path
-from typing import Iterable, Iterator, Sequence
+from typing import Iterable, Iterator, Sequence, TextIO
 
 import numpy as np
 
@@ -29,10 +36,14 @@ __all__ = [
     "MISSING_POLICY_HELP",
     "format_freq",
     "iter_sample_line_indices",
+    "open_tracked_text",
     "parse_bub_header_radii",
     "parse_sample_y",
     "parse_trackedbubinfo_blocks",
+    "read_tracked_lines",
+    "read_tracked_text",
     "resolve_missing_samples",
+    "resolve_tracked_path",
     "rewrite_freq_column",
     "rewrite_with_string_freqs",
     "summarize_freqs",
@@ -73,7 +84,61 @@ _END_LINE_RE = re.compile(r"^\s*End:\s+\S+\s+([+\-]?\d*\.?\d+(?:[eE][+\-]?\d+)?)
 
 
 # ---------------------------------------------------------------------------
-# Reading
+# Reading: plain text or xz
+# ---------------------------------------------------------------------------
+#
+# Raw tracked text for a full scene runs to gigabytes -- the exhalation files
+# are 1.2 GB each -- and xz takes them down to about 14% with no loss, so those
+# ship compressed and every clone stops paying LFS bandwidth for whitespace.
+# Readers take ``.txt`` or ``.txt.xz`` interchangeably, which is also what keeps
+# the small plain-text scenes working unchanged; the raw text is still one
+# ``xz -dk <file>.xz`` away for tools that need a real file, such as the
+# FluidSound renderer.
+
+
+def resolve_tracked_path(src: Path | str) -> Path:
+    """Return the file that actually holds ``src``: ``.txt`` or ``.txt.xz``.
+
+    An existing path comes back unchanged; otherwise the other spelling is
+    tried (``...txt`` <-> ``...txt.xz``). When neither exists ``src`` comes back
+    as given, so the caller's own "no such file" message names what it asked
+    for.
+    """
+    src = Path(src)
+    if src.exists():
+        return src
+    if src.suffix == ".xz":
+        alt = src.with_suffix("")
+    else:
+        alt = src.with_name(src.name + ".xz")
+    return alt if alt.exists() else src
+
+
+def open_tracked_text(src: Path | str, *, errors: str = "strict") -> TextIO:
+    """Open a tracked file for reading as text, decompressing ``.xz`` on the fly.
+
+    For use as a context manager, the streaming counterpart of
+    :func:`read_tracked_text`.
+    """
+    path = resolve_tracked_path(src)
+    if path.suffix == ".xz":
+        return lzma.open(path, "rt", encoding="utf-8", errors=errors)
+    return path.open("r", encoding="utf-8", errors=errors)
+
+
+def read_tracked_text(src: Path | str, *, errors: str = "strict") -> str:
+    """Read a whole tracked file as text, whether it is ``.txt`` or ``.txt.xz``."""
+    with open_tracked_text(src, errors=errors) as fh:
+        return fh.read()
+
+
+def read_tracked_lines(src: Path | str, *, errors: str = "strict") -> list[str]:
+    """Read a tracked file and split it into lines, without line endings."""
+    return read_tracked_text(src, errors=errors).splitlines()
+
+
+# ---------------------------------------------------------------------------
+# Reading: structure
 # ---------------------------------------------------------------------------
 
 
@@ -210,8 +275,10 @@ def parse_trackedbubinfo_blocks(
 
     Returns ``(lines, sample_line_indices, per_sample_meta)`` where
     ``per_sample_meta[i] = (bub_id, t_s, y_m)`` for the ``i``-th sample line.
+
+    ``src`` may name either the ``.txt`` or the shipped ``.txt.xz`` copy.
     """
-    lines = Path(src).read_text(encoding="utf-8").splitlines()
+    lines = read_tracked_lines(src)
     sample_idxs: list[int] = []
     meta: list[tuple[int, float, float]] = []
     cur_bub: int | None = None
@@ -262,11 +329,22 @@ def write_tracked_lines(dst: Path, lines: Sequence[str]) -> None:
     filter run on Windows would emit CRLF and rewrite every byte of a versioned
     dataset artifact. These files are diffed and committed, so the ending is
     pinned rather than inherited from whoever ran the pipeline.
+
+    A ``dst`` ending in ``.xz`` is written xz-compressed at the same preset as
+    the shipped dataset copies. ``lzma`` only compresses single-threaded, so for
+    a multi-gigabyte scene it is much faster to write the ``.txt`` and run
+    ``xz -6 -T0 <file>`` on it afterwards; either way the decompressed text is
+    identical.
     """
     dst = Path(dst)
     dst.parent.mkdir(parents=True, exist_ok=True)
+    text = "\n".join(lines) + "\n"
+    if dst.suffix == ".xz":
+        with lzma.open(dst, "wt", encoding="utf-8", newline="\n", preset=6) as fh:
+            fh.write(text)
+        return
     with dst.open("w", encoding="utf-8", newline="\n") as fh:
-        fh.write("\n".join(lines) + "\n")
+        fh.write(text)
 
 
 def format_freq(value: float, fmt: str) -> str:

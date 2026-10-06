@@ -45,6 +45,7 @@ from tracked_bubinfo import (  # noqa: E402
     discover_mesh_jobs,
     infer_dt_lbm,
     parse_trackedbubinfo_blocks,
+    resolve_tracked_path,
     truncate_and_rewrite_blocks,
     write_tracked_lines,
 )
@@ -137,7 +138,7 @@ def main() -> int:
                     help="Optional per-mesh watertightness report.")
     args = ap.parse_args()
 
-    tracked = args.tracked.resolve()
+    tracked = resolve_tracked_path(args.tracked.resolve())
     meshes_root = args.meshes_root.resolve()
     for p in (tracked, meshes_root):
         if not p.exists():

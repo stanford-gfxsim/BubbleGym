@@ -8,7 +8,8 @@ driver needs:
 
 * :mod:`tracked_bubinfo.io` -- parse blocks / sample lines, read the per-bubble
   header radii, and rewrite the frequency column (optionally truncating blocks
-  at a cutoff time).
+  at a cutoff time). The large scenes ship xz-compressed; every reader here
+  takes ``trackedBubInfo_<model>.txt`` or ``.txt.xz`` interchangeably.
 * :mod:`tracked_bubinfo.mesh_index` -- discover the per-bubble marching-cubes
   OBJ tree that accompanies a tracked file, resolve the simulation timestep,
   and map each sample line to its nearest mesh frame.
@@ -23,10 +24,14 @@ from tracked_bubinfo.io import (
     MISSING_POLICY_HELP,
     format_freq,
     iter_sample_line_indices,
+    open_tracked_text,
     parse_bub_header_radii,
     parse_sample_y,
     parse_trackedbubinfo_blocks,
+    read_tracked_lines,
+    read_tracked_text,
     resolve_missing_samples,
+    resolve_tracked_path,
     rewrite_freq_column,
     rewrite_with_string_freqs,
     summarize_freqs,
@@ -51,10 +56,14 @@ __all__ = [
     "MISSING_POLICY_HELP",
     "format_freq",
     "iter_sample_line_indices",
+    "open_tracked_text",
     "parse_bub_header_radii",
     "parse_sample_y",
     "parse_trackedbubinfo_blocks",
+    "read_tracked_lines",
+    "read_tracked_text",
     "resolve_missing_samples",
+    "resolve_tracked_path",
     "rewrite_freq_column",
     "rewrite_with_string_freqs",
     "summarize_freqs",

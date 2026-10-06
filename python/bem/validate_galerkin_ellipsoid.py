@@ -174,7 +174,9 @@ def main() -> int:
         print(f"bempp not available: {exc}", file=sys.stderr)
         return 3
 
-    ref_path = args.reference.resolve()
+    from tracked_bubinfo.io import resolve_tracked_path
+
+    ref_path = resolve_tracked_path(args.reference.resolve())
     ref_by_k: dict[int, tuple[float, float]] = {}
     if ref_path.is_file():
         ref_by_k = _load_reference_by_k(ref_path)

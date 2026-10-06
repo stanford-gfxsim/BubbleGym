@@ -33,6 +33,11 @@ if str(PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(PYTHON_ROOT))
 
 from freq_model.analytical.minnaert_freq import MINNAERT_CONSTANT  # noqa: E402
+from tracked_bubinfo import (  # noqa: E402
+    read_tracked_lines,
+    resolve_tracked_path,
+    write_tracked_lines,
+)
 
 REPO_ROOT = PYTHON_ROOT.parent
 DEFAULT_SRC = REPO_ROOT / "dataset" / "exhalation" / "trackedBubInfo-2-dropped.txt"
@@ -53,14 +58,16 @@ def main() -> None:
     parser.add_argument("--frequency-format", type=str, default="{:.6f}")
     args = parser.parse_args()
 
-    src = args.src.resolve()
-    out = (args.out or args.src).resolve()
+    # --src may name the plain or the xz-compressed copy; in-place output goes
+    # back to whichever one was read.
+    src = resolve_tracked_path(args.src.resolve())
+    out = args.out.resolve() if args.out else src
     fmt = args.frequency_format
 
     if not src.is_file():
         raise SystemExit(f"missing src: {src}")
 
-    lines = src.read_text(encoding="utf-8").splitlines()
+    lines = read_tracked_lines(src)
     out_lines: list[str] = list(lines)
 
     cur_bub: int | None = None
@@ -111,8 +118,7 @@ def main() -> None:
         out_lines[i] = prefix + " ".join(parts)
         n_samples_rewritten += 1
 
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
+    write_tracked_lines(out, out_lines)
 
     print("Summary:")
     print(f"  src:                          {src}")

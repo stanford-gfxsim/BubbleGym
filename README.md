@@ -67,7 +67,7 @@ git clone https://github.com/stanford-gfxsim/BubbleGym.git
 cd BubbleGym
 ```
 
-If you already have a broken tree, or want the code without the 4.8 GB of scene
+If you already have a broken tree, or want the code without the 620 MB of scene
 data, skip the content and fetch it later:
 
 ```bash
@@ -88,10 +88,13 @@ pip install -r requirements.txt             # full stack: torch, bempp-cl, ...
 Run everything from the repository root with `PYTHONPATH=python`.
 
 **Predict frequencies for a scene.** Each scene ships one
-`trackedBubInfo_<model>.txt` per frequency model, all sharing one bubble graph
-and differing only in the frequency column, so any two are directly comparable.
-The three writers in `python/scene/_common/` take the same shape, a base tracked
-file in and a frequency column out:
+`trackedBubInfo_<model>` per frequency model, all sharing one bubble graph and
+differing only in the frequency column, so any two are directly comparable. The
+three large scenes ship theirs xz-compressed as `.txt.xz`, `bubble_theater/` as
+plain `.txt`. Every reader in this repository takes either form; `xz -dk
+<file>.txt.xz` unpacks one for a tool that needs the raw text, such as the
+FluidSound renderer. The three writers in `python/scene/_common/` take the same
+shape, a base tracked file in and a frequency column out:
 
 ```bash
 python python/scene/_common/write_trackedbubinfo_nn.py \

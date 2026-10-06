@@ -13,7 +13,13 @@ the end-to-end speedup, so the caption can be restated from the same source.
 
 Add `--dark` for the project-page rendering.
 
-One caveat: the `sound synthesis` slice was measured in FluidSound, a separate
-project not driven from this repository, so the pie script reads that number
-from the ledger rather than re-measuring it. Every other slice rebuilds from
-data here.
+Where every slice of both pies comes from, stage by stage, is in
+[`fig8_end2end_timing.md`](fig8_end2end_timing.md).
+
+Two caveats, both recorded there: the `sound synthesis` slice was measured in
+FluidSound, a separate project not driven from this repository, so the pie
+script reads that number from the ledger rather than re-measuring it; and the
+exhalation pie's `frequency estimation` slice for our surrogate is carried from
+an earlier ledger too, since re-measuring it needs the per-bubble mesh tree,
+which is simulator output and not part of the release. Every other slice
+rebuilds from data here.

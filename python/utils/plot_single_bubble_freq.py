@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import lzma
 import math
 from pathlib import Path
 
@@ -73,9 +74,21 @@ DT_LBM = 1.0 / 12000.0
 R_UNIT = (3.0 / (4.0 * math.pi)) ** (1.0 / 3.0)
 
 
+def read_tracked_lines(path: Path) -> list[str]:
+    """Lines of a tracked file, decompressing a shipped ``.txt.xz`` on the fly.
+
+    ``tracked_bubinfo.io`` has the same helper, but this script is deliberately
+    importable with nothing but numpy and matplotlib, so it keeps its own.
+    """
+    if path.suffix == ".xz":
+        with lzma.open(path, "rt", encoding="utf-8", errors="replace") as fh:
+            return fh.read().splitlines()
+    return path.read_text(encoding="utf-8", errors="replace").splitlines()
+
+
 def parse_radius_eq(path: Path, bub_id: int) -> float:
     """R_eq from the ``Bub <id> <R_eq>`` header of one record."""
-    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+    for raw in read_tracked_lines(path):
         tok = raw.split()
         if len(tok) == 3 and tok[0] == "Bub" and int(tok[1]) == bub_id:
             return float(tok[2])
@@ -182,7 +195,7 @@ def parse_track(path: Path, bub_id: int) -> tuple[np.ndarray, np.ndarray]:
     times: list[float] = []
     freqs: list[float] = []
     cur = None
-    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+    for raw in read_tracked_lines(path):
         tok = raw.split()
         if not tok:
             continue
@@ -234,16 +247,22 @@ def main() -> int:
     if not args.data.is_dir():
         raise SystemExit(f"--data is not a directory: {args.data}")
     def _pick(suffix: str) -> Path:
-        """First *<suffix>.txt in --data, matched case-insensitively.
+        """First *<suffix>.txt(.xz) in --data, matched case-insensitively.
 
-        The shipped files are trackedBubInfo_NN.txt / _Minnaert.txt; other
-        copies use *_nn.txt / *_minnaert.txt, and only Windows treats those
-        two globs as the same.
+        The shipped files are trackedBubInfo_NN.txt.xz / _Minnaert.txt.xz; other
+        copies are plain text and use *_nn.txt / *_minnaert.txt, and only
+        Windows treats those two globs as the same. A plain ``.txt`` sorts
+        before its ``.xz``, so an unpacked copy wins when both are present.
         """
-        hits = sorted(p for p in args.data.glob("*.txt")
-                      if p.stem.lower().endswith(suffix))
+        def _stem(p: Path) -> str:
+            name = p.name[:-3] if p.name.lower().endswith(".xz") else p.name
+            return Path(name).stem.lower()
+
+        hits = sorted(p for p in args.data.iterdir()
+                      if p.name.lower().endswith((".txt", ".txt.xz"))
+                      and _stem(p).endswith(suffix))
         if not hits:
-            raise SystemExit(f"no *{suffix}.txt in {args.data}")
+            raise SystemExit(f"no *{suffix}.txt or *{suffix}.txt.xz in {args.data}")
         return hits[0]
 
     nn_file = _pick("_nn")

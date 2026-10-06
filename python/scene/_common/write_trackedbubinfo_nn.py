@@ -64,6 +64,7 @@ from tracked_bubinfo import (  # noqa: E402
     infer_dt_lbm,
     parse_bub_header_radii,
     parse_trackedbubinfo_blocks,
+    resolve_tracked_path,
     summarize_freqs,
     truncate_and_rewrite_blocks,
 )
@@ -163,7 +164,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    tracked = args.tracked.resolve()
+    tracked = resolve_tracked_path(args.tracked.resolve())
     meshes_root = args.meshes_root.resolve()
     smoothed_root = (
         args.smoothed_cache_root.resolve()

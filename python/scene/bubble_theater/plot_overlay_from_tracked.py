@@ -49,6 +49,7 @@ from scene.bubble_theater.render_bubble_theater import (  # noqa: E402
     _plot_freq_curves,
     _write_freq_curves_csv,
 )
+from tracked_bubinfo import read_tracked_lines, resolve_tracked_path  # noqa: E402
 
 # Legend strings for the overlay PNG only. File tags are Minnaert / Ellipsoid /
 # NN8 / BEM; the CSV column for the ellipsoid proxy is still ``f_strasberg``,
@@ -80,7 +81,7 @@ def _parse_tracked_bubinfo(
     times: list[float] = []
     freqs: list[float] = []
     radius_eq: float | None = None
-    for raw in path.read_text().splitlines():
+    for raw in read_tracked_lines(path):
         s = raw.strip()
         if not s or s.startswith("#"):
             continue
@@ -225,7 +226,7 @@ def main() -> int:
     found: dict[str, tuple[np.ndarray, np.ndarray]] = {}
     radii: dict[str, float] = {}
     for tag in norm:
-        p = rd / f"trackedBubInfo_{tag}.txt"
+        p = resolve_tracked_path(rd / f"trackedBubInfo_{tag}.txt")
         if not p.is_file():
             print(f"  skip {tag}: {p.name} not present")
             continue

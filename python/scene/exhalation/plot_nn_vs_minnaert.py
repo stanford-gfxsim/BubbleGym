@@ -41,7 +41,7 @@ for _p in (PYTHON_ROOT, BASELINE_ROOT):
         sys.path.insert(0, str(_p))
 
 from freq_model.analytical.minnaert_freq import MINNAERT_CONSTANT  # noqa: E402
-from tracked_bubinfo import parse_trackedbubinfo_blocks
+from tracked_bubinfo import parse_trackedbubinfo_blocks, resolve_tracked_path
 
 
 # Local copy of parse_bub_header_radii from scene/_common/write_trackedbubinfo_nn.py:
@@ -683,7 +683,7 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    tracked = args.tracked_nn.resolve()
+    tracked = resolve_tracked_path(args.tracked_nn.resolve())
     out_dir = args.out_dir.resolve()
     if args.meshes_root is not None:
         meshes_root: Path | None = args.meshes_root.resolve()
@@ -734,7 +734,7 @@ def main() -> None:
         raise SystemExit("no NN-updated sample lines to plot; aborting")
 
     if args.tracked_minnaert is not None:
-        minn_path = args.tracked_minnaert.resolve()
+        minn_path = resolve_tracked_path(args.tracked_minnaert.resolve())
         if not minn_path.is_file():
             raise SystemExit(f"missing tracked-minnaert: {minn_path}")
         print(f"Loading Minnaert source {minn_path} ...")

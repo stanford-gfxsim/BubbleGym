@@ -72,6 +72,7 @@ from shape_feature.mesh_utils import (  # noqa: E402
     mesh_signed_volume,
     vertices_scaled_to_target_volume,
 )
+from tracked_bubinfo import open_tracked_text, resolve_tracked_path  # noqa: E402
 
 
 REPO_ROOT = PYTHON_ROOT.parent
@@ -238,7 +239,7 @@ def _load_times_and_freqs_from_tracked_bubinfo(
     """
     times: list[float] = []
     freqs: list[float] = []
-    with path.open("r", encoding="utf-8") as h:
+    with open_tracked_text(path) as h:
         for raw in h:
             line = raw.strip()
             if not line:
@@ -1006,7 +1007,7 @@ def main() -> int:
         # SystemExit instead of getting silently dropped from the
         # downstream summary / CSV / PNG dispatch.
         for tag in methods:
-            p = output_dir / f"trackedBubInfo_{tag}.txt"
+            p = resolve_tracked_path(output_dir / f"trackedBubInfo_{tag}.txt")
             if not p.is_file():
                 missing.append(p)
                 continue
@@ -1177,7 +1178,7 @@ def main() -> int:
         f_nn8 = np.full(n, np.nan, dtype=np.float64)
 
     if "BEM" in methods:
-        cached_bem_path = output_dir / "trackedBubInfo_BEM.txt"
+        cached_bem_path = resolve_tracked_path(output_dir / "trackedBubInfo_BEM.txt")
         if args.bem_reuse_tracked:
             if not cached_bem_path.is_file():
                 raise SystemExit(
