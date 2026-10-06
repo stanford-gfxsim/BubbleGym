@@ -4,3 +4,9 @@
 dataset/**/trackedBubInfo_*.txt.xz -text
 dataset/exhalation/trackedBubInfo_*.txt.xz filter=lfs diff=lfs merge=lfs -text
 dataset/fruit_splash/trackedBubInfo_*.txt.xz filter=lfs diff=lfs merge=lfs -text
+
+# bubble_theater's tracked files are a few KB each and stay plain text. Pin
+# their endings to the LF the format is defined with (see
+# python/tracked_bubinfo/io.py): without this, a core.autocrlf=true clone checks
+# them out CRLF and any rewrite commits the whole file back.
+dataset/**/trackedBubInfo_*.txt -text

@@ -63,6 +63,9 @@ The Python code in this repository needs no unpacking: every reader in
 `python/tracked_bubinfo/` takes the `.txt.xz` or a plain `.txt` interchangeably,
 and `lzma` (stdlib) reads `.xz` directly if you write your own.
 
+Every tracked file uses LF line endings, and `.gitattributes` holds them that
+way on any platform.
+
 trackedBubInfo.txt stores the bubble tracking information for the simulation. For each bubble, the format is:
 
     Bub <global, unique bubble ID> <radius>
