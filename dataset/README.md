@@ -64,7 +64,8 @@ The Python code in this repository needs no unpacking: every reader in
 and `lzma` (stdlib) reads `.xz` directly if you write your own.
 
 Every tracked file uses LF line endings, and `.gitattributes` holds them that
-way on any platform.
+way on any platform. [`checksums.md`](checksums.md) lists an MD5 per tracked
+file, for LF and for CRLF, so a converted copy can still be identified.
 
 trackedBubInfo.txt stores the bubble tracking information for the simulation. For each bubble, the format is:
 
@@ -80,3 +81,4 @@ The start and end event types can be:
     M: merge; the bubble IDs that this bubble merges to/from are listed.
     S: split; the bubble IDs that this bubble splits to/from are listed.
     C: collapse; end-only 
+

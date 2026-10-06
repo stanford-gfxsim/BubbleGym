@@ -6,13 +6,25 @@
   "n_scored": 75606,
   "workers": 16,
   "chunksize": 64,
-  "t_load_and_features_s": 51.224,
-  "t_batched_inference_s": 1.268,
-  "t_total_s": 52.491,
-  "ms_per_mesh": 0.6935,
-  "check_max_rel_diff_vs_sweep_nn": 1.1920929681415058e-07,
+  "batch": 512,
+  "n_runs": 5,
+  "t_load_and_features_s": 57.99,
+  "t_batched_inference_s": 0.445,
+  "t_total_s": 58.435,
+  "t_total_s_runs": [
+    58.133,
+    58.427,
+    58.535,
+    58.835,
+    58.243
+  ],
+  "t_total_s_sd": 0.273,
+  "t_total_s_median": 58.427,
+  "ms_per_mesh": 0.7721,
+  "us_per_mesh_inference": 5.8796,
   "cpu": "Intel(R) Core(TM) i9-14900K",
   "gpu": "NVIDIA GeForce RTX 5090",
-  "inference_device": "cpu (production path)",
-  "file_cache": "warmed before timing"
+  "inference_device": "cuda, batch 512 (Table 1 protocol)",
+  "file_cache": "warmed before timing",
+  "measured": "2026-10-05"
 }
