@@ -7,9 +7,9 @@ columns from each, and writes a single overlay
 ``freq_curves.png`` (and ``freq_curves_overlay.csv``) using the same
 ``_plot_freq_curves`` helper that the main pipeline uses.
 
-The overlay plot uses a friendlier legend label for the network
-(``NN8`` → ``Learning model``); file names and CSV columns still use
-the canonical tags. Legend position is
+The overlay plot uses the paper's legend labels (``Ellipsoid`` →
+``Ellipsoid proxy``, ``NN8`` → ``Learned model``); file names and CSV
+columns still use the canonical tags. Legend position is
 fixed to a corner via ``--legend-loc upper-left`` or ``upper-right``
 (default: upper-left).
 
@@ -48,6 +48,7 @@ from scene.bubble_theater.render_bubble_theater import (  # noqa: E402
     METHOD_TAGS,
     _plot_freq_curves,
     _write_freq_curves_csv,
+    tracked_name,
 )
 from tracked_bubinfo import read_tracked_lines, resolve_tracked_path  # noqa: E402
 
@@ -55,7 +56,8 @@ from tracked_bubinfo import read_tracked_lines, resolve_tracked_path  # noqa: E4
 # NN8 / BEM; the CSV column for the ellipsoid proxy is still ``f_strasberg``,
 # after the analytic model it implements.
 _OVERLAY_LEGEND_LABELS: dict[str, str] = {
-    "NN8": "Learning model",
+    "Ellipsoid": "Ellipsoid proxy",
+    "NN8": "Learned model",
 }
 
 # Matplotlib ``loc`` strings for ``Axes.legend`` (overlay only; two corners).
@@ -226,7 +228,7 @@ def main() -> int:
     found: dict[str, tuple[np.ndarray, np.ndarray]] = {}
     radii: dict[str, float] = {}
     for tag in norm:
-        p = resolve_tracked_path(rd / f"trackedBubInfo_{tag}.txt")
+        p = resolve_tracked_path(rd / tracked_name(tag))
         if not p.is_file():
             print(f"  skip {tag}: {p.name} not present")
             continue

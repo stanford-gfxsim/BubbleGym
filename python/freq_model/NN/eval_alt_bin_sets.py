@@ -1,16 +1,16 @@
-"""Score the retrained Fig. 4 surrogates on a stratified bin set of a different shape.
+"""Score Fig. 4's two learned heads on a stratified bin set of a different shape.
 
 Fig. 4 bins its 100 bubbles on Wadell nonsphericity. That is one choice among
 several, and a model can look good on it simply because that is the axis it was
 displayed along. This builds an equivalent panel binned on a *different* shape
-measure, drawn from bubbles the retrained models never saw, and scores the same
+measure, drawn from bubbles the two heads never saw, and scores the same
 four series on it.
 
 ``--bin-by`` picks the stratification axis:
 
 ``wadell``    1 - Phi_VA, the axis Fig. 4 itself uses (for a fresh draw along it)
 ``inertia``   sqrt((I11/I00 - 1)^2 + (I22/I00 - 1)^2), elongation / flattening;
-              this is the axis the supplement's ablation panel actually used
+              the axis of the supplement's feature-ablation panel
 ``chull``     1 - eta_V, the convex-hull volume deficit, i.e. concavity
 ``willmore``  1 - 4 pi / W_vertex, bending energy above the sphere's
 
@@ -26,10 +26,10 @@ negated, which reverses the bin order and, because the seed of each bin's
 farthest-point walk is picked from the bin's own members, shifts the selection
 slightly: the two agree on 93 of 100 bubbles rather than all of them.
 
-The pool defaults to the **test split of the retrained models**, so every scored
-bubble is out of sample: those models were trained with Fig. 4's 100 bubbles
-pinned out and the remaining 9,900 split 70/15/15, and this draws from the 1,485
-rows none of them touched.
+The pool defaults to the **test split of the two heads**, so every scored bubble
+is out of sample: the heads were trained with the 100-bubble hold-out set
+(``selected_rows.csv``) pinned out and the remaining 9,900 split 70/15/15, and
+this draws from the 1,485 rows none of them touched.
 
 Within each bin the bubbles are chosen by farthest-point sampling in the
 standardized eight-feature space, seeded from the bubble nearest the bin's median
@@ -60,6 +60,7 @@ from freq_model.NN.nn_inference import load_nn_artifacts  # noqa: E402
 
 RETRAIN_DIR = Path("python/freq_model/output/fig04_retrain")
 FIG04_DIR = Path("results/experiments/fig04_per_bin_model_error")
+N_FEATURES = len(FEATURE_COLS_8)   # Fig. 4's heads use the production feature set
 
 # Composite axes, each 0 at a sphere and increasing with nonsphericity.
 AXES = {
@@ -113,7 +114,7 @@ def _farthest_point_sample(xz: np.ndarray, k: int, seed_row: int) -> np.ndarray:
 
 
 def _predict(artifact_dir: Path, x: np.ndarray, f_strasberg: np.ndarray) -> np.ndarray:
-    """Run one retrained artifact over ``x``; adds the baseline back when residual."""
+    """Run one Fig. 4 head over ``x``; adds the baseline back when residual."""
     import torch
 
     cfg = json.loads((artifact_dir / "train_config.json").read_text(encoding="utf-8"))
@@ -122,8 +123,7 @@ def _predict(artifact_dir: Path, x: np.ndarray, f_strasberg: np.ndarray) -> np.n
     model, fs, ts, _ = load_nn_artifacts(artifact_dir, feature_cols, kind)
 
     if x.shape[1] != len(feature_cols):
-        # the 6-feature variants drop the two leading inertia ratios
-        x = x[:, 8 - len(feature_cols):]
+        raise ValueError(f"{artifact_dir} expects {len(feature_cols)} features, got {x.shape[1]}")
     xn = fs.transform(x.astype(np.float32)).astype(np.float32)
     with torch.no_grad():
         y = model(torch.from_numpy(xn)).numpy().reshape(-1, 1)
@@ -142,7 +142,6 @@ def main() -> None:
                    default=Path("dataset/bubble_gym/dataset_bubblegym_10k.csv"))
     p.add_argument("--bin-by", choices=tuple(AXES), required=True)
     p.add_argument("--retrain-dir", type=Path, default=RETRAIN_DIR)
-    p.add_argument("--features", type=int, choices=(6, 8), default=8)
     p.add_argument("--bins", type=int, default=10)
     p.add_argument("--per-bin", type=int, default=10)
     p.add_argument("--fig04-dir", type=Path, default=FIG04_DIR)
@@ -155,13 +154,13 @@ def main() -> None:
 
     axis_label, scalar_name = AXES[args.bin_by]
 
-    # ---- rows the retrained models never saw -----------------------------
-    dirs = {o: args.retrain_dir / f"{args.features}feature_{o}" for o in ("residual", "direct")}
+    # ---- rows the two heads never saw --------------------------------------
+    dirs = {o: args.retrain_dir / f"{N_FEATURES}feature_{o}" for o in ("residual", "direct")}
     splits = {o: json.loads((d / "split.json").read_text(encoding="utf-8"))
               for o, d in dirs.items()}
     pool_ids = set(splits["residual"]["mesh_id_test"])
     if pool_ids != set(splits["direct"]["mesh_id_test"]):
-        raise SystemExit("the two retrains disagree on their test split; cannot share a pool")
+        raise SystemExit("the two heads disagree on their test split; cannot share a pool")
     for o, s in splits.items():
         if pool_ids & (set(s["mesh_id_train"]) | set(s["mesh_id_val"])):
             raise SystemExit(f"{o}: test split overlaps train/val")
@@ -273,8 +272,8 @@ def main() -> None:
         "bin_by": args.bin_by,
         "axis_label": axis_label,
         "scalar": scalar_name,
-        "features": args.features,
-        "pool": {"what": f"test split of the {args.features}-feature retrains",
+        "features": N_FEATURES,
+        "pool": {"what": f"test split of the {N_FEATURES}-feature retrains",
                  "n": int(len(pool_ids)),
                  "disjoint_from_fig04_meshes": True,
                  "disjoint_from_train_and_val": True},

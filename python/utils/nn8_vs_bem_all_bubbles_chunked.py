@@ -505,8 +505,7 @@ def main() -> int:
     ap.add_argument(
         "--artifacts",
         type=Path,
-        # NOT harness.DEFAULT_ARTIFACTS (the old 9k model): Table 1 uses the
-        # 10k retrain.
+        # The released 8-feature checkpoint, the model Table 1 times.
         default=harness.PYTHON_ROOT
         / "freq_model"
         / "output" / "output_8feature_direct_bubblegym_10k",

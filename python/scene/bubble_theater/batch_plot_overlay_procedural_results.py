@@ -1,22 +1,18 @@
-"""Batch-regenerate ``freq_curves.png`` for the standard procedural result folders.
+"""Regenerate Fig. 1's three frequency-curve panels from the shipped scenes.
 
-Runs ``plot_overlay_from_tracked.py`` once per directory (same CLI semantics as
+Runs ``plot_overlay_from_tracked.py`` once per scene (same CLI semantics as
 invoking it manually)::
 
-    python python/scene/bubble_theater/batch_plot_overlay_procedural_results.py \\
-        --fontsize 15
+    python python/scene/bubble_theater/batch_plot_overlay_procedural_results.py
 
-REQUIRED INPUTS: one ``<scene>_result/`` folder of ``trackedBubInfo_<tag>.txt``
-files per scene, under ``--base-dir``. These are not shipped -- generate them
-first with ``render_bubble_theater.py``, whose default ``--output-dir`` is the
-same ``dataset/bubble_theater/`` this script defaults to::
+INPUTS: ``dataset/bubble_theater/<scene>/trackedBubInfo_{Minnaert,Ellipsoid,NN,BEM}.txt``
+for scene in ellipsoid, curl_noise, enright_test (``--base-dir``).
 
-    python python/scene/bubble_theater/render_bubble_theater.py \\
-        dataset/bubble_theater/curl_noise/mesh
+OUTPUTS: ``teaser_{ellipsoid,curl_noise,enright}_freq_curves.jpg`` in
+``results/experiments/fig01_bubble_theater/`` (``--out-dir``), 1350 x 675 px.
 
-Default targets under ``--base-dir``: ``curl_noise_result/``,
-``ellipsoid_result/``, ``enright_test_result/``. Paths are resolved from this
-file's location, so the working directory does not matter.
+Paths are resolved from this file's location, so the working directory does
+not matter.
 """
 
 from __future__ import annotations
@@ -30,41 +26,35 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OVERLAY_SCRIPT = Path(__file__).resolve().parent / "plot_overlay_from_tracked.py"
 
-# Matches render_bubble_theater.py's default --output-dir, which is where it
-# writes each scene's <name>_result/ folder.
-DEFAULT_BASE = REPO_ROOT / "results" / "experiments" / "fig01_bubble_theater"
+DEFAULT_BASE = REPO_ROOT / "dataset" / "bubble_theater"
+DEFAULT_OUT = REPO_ROOT / "results" / "experiments" / "fig01_bubble_theater"
 
-DEFAULT_RESULT_DIRS = (
-    "curl_noise_result",
-    "ellipsoid_result",
-    "enright_test_result",
-)
+# scene folder under --base-dir -> panel name in --out-dir
+DEFAULT_SCENES = {
+    "ellipsoid": "teaser_ellipsoid_freq_curves.jpg",
+    "curl_noise": "teaser_curl_noise_freq_curves.jpg",
+    "enright_test": "teaser_enright_freq_curves.jpg",
+}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Run plot_overlay_from_tracked.py on the default "
-            "bubble_theater *_result folders (or a custom list)."
+            "Run plot_overlay_from_tracked.py on the Bubble Theater scenes and "
+            "write Fig. 1's three panels."
         )
     )
     parser.add_argument(
         "--base-dir",
         type=Path,
-        default=None,
-        help=(
-            "Directory containing the *_result folders. Default: "
-            f"{DEFAULT_BASE} (resolved from this script's location)."
-        ),
+        default=DEFAULT_BASE,
+        help=f"Directory holding one folder per scene. Default: {DEFAULT_BASE}",
     )
     parser.add_argument(
-        "--result-dirs",
-        type=str,
-        default=",".join(DEFAULT_RESULT_DIRS),
-        help=(
-            "Comma-separated folder names under --base-dir (default: the "
-            "three standard procedural results)."
-        ),
+        "--out-dir",
+        type=Path,
+        default=DEFAULT_OUT,
+        help=f"Where the panels are written. Default: {DEFAULT_OUT}",
     )
     parser.add_argument(
         "--fontsize",
@@ -87,26 +77,16 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    base = (args.base_dir if args.base_dir is not None else DEFAULT_BASE).resolve()
+    base = args.base_dir.resolve()
+    out_dir = args.out_dir.resolve()
     if not base.is_dir():
         print(f"Error: base-dir is not a directory: {base}", file=sys.stderr)
         return 2
-
-    names = [tok.strip() for tok in args.result_dirs.split(",") if tok.strip()]
-    if not names:
-        print("Error: --result-dirs resolved to an empty list", file=sys.stderr)
-        return 2
-
-    if not OVERLAY_SCRIPT.is_file():
-        print(
-            f"Error: overlay script not found: {OVERLAY_SCRIPT}",
-            file=sys.stderr,
-        )
-        return 2
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     failures: list[tuple[str, int]] = []
-    for name in names:
-        rd = (base / name).resolve()
+    for scene, panel in DEFAULT_SCENES.items():
+        rd = base / scene
         if not rd.is_dir():
             print(f"[skip] not a directory: {rd}", file=sys.stderr)
             failures.append((str(rd), 2))
@@ -116,12 +96,15 @@ def main() -> int:
             sys.executable,
             str(OVERLAY_SCRIPT),
             str(rd),
+            "--png-name",
+            str(out_dir / panel),
+            "--csv-name=",
             "--fontsize",
             str(args.fontsize),
             "--legend-loc",
             str(args.legend_loc),
         ]
-        print(f"\n=== {rd.name} ===\n  {' '.join(cmd)}")
+        print(f"\n=== {scene} ===\n  {' '.join(cmd)}")
         if args.dry_run:
             continue
 
@@ -139,7 +122,7 @@ def main() -> int:
             print(f"  exit {code}: {path}", file=sys.stderr)
         return 1
 
-    print("\n=== All overlays OK ===")
+    print("\n=== All panels OK ===")
     return 0
 
 

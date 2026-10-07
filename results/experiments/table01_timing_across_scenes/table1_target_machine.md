@@ -1,9 +1,9 @@
-# Table 1 re-collection — target machine (fresh measurements)
+# Table 1 — target machine
 
 Measured 2026-07-03/04 on **Intel i9-14900K (24 cores / 32 threads), NVIDIA GeForce RTX 5090**,
-Windows 11 — the hardware named in Sec. 6 of the paper. Model: 8-feat MLP retrained on
-`dataset/bubble_gym/dataset_bubblegym_10k.csv` (6,000 Langlois2016 + 4,000 LBM; test MAPE 0.07%),
-artifacts `python/freq_model/output/output_8feature_direct_bubblegym_10k`.
+Windows 11 — the hardware named in Sec. 6 of the paper. Model: the released 8-feature MLP,
+`python/freq_model/output/output_8feature_direct_bubblegym_10k`, trained on
+`dataset/bubble_gym/dataset_bubblegym_10k.csv` (6,000 Langlois2016 + 4,000 LBM; test MAPE 0.089%).
 BEM: P1-DP0 Galerkin, mass precond, GMRES tol=1e-12, quadrature 6/6 (dataset profile), CPU,
 sequential single-core. bempp JIT warm-up excluded everywhere.
 
@@ -21,10 +21,9 @@ sequential single-core. bempp JIT warm-up excluded everywhere.
   `dataset/bubble_theater/{ellipsoid (240), curl_noise (241), enright_test (119)}`;
   AVERAGE rows of `nn8_vs_bem_<scene>.csv` in this directory. Inference = GPU forward incl.
   transfer, batch 1. Speedup = mean BEM total / mean (feat + GPU infer).
-  Enright Test frame 1 is excluded (non-finite convex-hull feature row; the same frame was
-  excluded in the previous collection, 119 frames both times).
-- The Fruits and Exhalation rows above are now the **final** sweeps the paper prints,
-  read straight from `all_bubbles/fruit08/fruit08_all_summary.json` and
+  Enright Test frame 1 is excluded (non-finite feature row).
+- The Fruits and Exhalation rows are read from
+  `all_bubbles/fruit08/fruit08_all_summary.json` and
   `all_bubbles/exhale15/exhale15_all_summary.json` (both i9-14900K). `#Bubbles` is
   unique bubbles with an exported mesh / BEM solves; the two populations differ, so
   one column does not divide into the other.
@@ -34,48 +33,21 @@ sequential single-core. bempp JIT warm-up excluded everywhere.
   mean BEM total / mean (feat + that constant):
   0.8124/0.005733 = 142× and 0.7417/0.009033 = 82×.
   `batched_gpu_inference.json` in this directory times a *single* batch over a whole
-  scene (n = 6,511 / 32,464) and reads an order of magnitude lower; it is **not** the
-  Table 1 constant.
+  scene and reads an order of magnitude lower; it is **not** the Table 1 constant.
 
-## Per-scene mesh statistics + BEM vs MLP timing (combined)
+## Per-scene mesh statistics + BEM vs MLP timing (procedural scenes)
 
 Mesh columns are avg / median / min / max over the timed meshes of each scene;
-timing is per mesh (procedural: per-frame average over all frames; Fruits:
-interim mean over the all-bubbles rows so far, medians in parentheses —
-BEM cost is heavy-tailed).
+timing is the per-frame average over all frames.
 
 | Scene | n timed | #Vertices | #Faces | BEM asm/s | BEM solve/s | BEM total/s | Ours feat/ms | Ours infer(GPU)/ms | Speedup |
 |---|---|---|---|---|---|---|---|---|---|
 | Ellipsoid | 240 | 492 / 492 / 492 / 492 | 980 / 980 / 980 / 980 | 0.782 | 0.012 | 0.794 | 7.4 | 0.30 | 103× |
 | Curl Noise | 241 | 496 / 492 / 492 / 1,529 | 989 / 980 / 980 / 3,054 | 0.866 | 0.016 | 0.883 | 7.3 | 0.30 | 117× |
 | Enright Test | 119 | 2,997 / 2,913 / 638 / 5,291 | 5,990 / 5,822 / 1,272 / 10,578 | 26.150 | 1.349 | 27.498 | 50.8 | 0.35 | 538× |
-| ~~Fruits~~ (superseded) | 33,571 BEM (+210 NN-only, 871 skips) | 375 / 190 / 101 / 37,854 | 746 / 376 / 178 / 74,110 | 1.313 (0.454) | 0.040 (0.016) | 1.352 (0.470) | 7.7 (4.1) | 0.31 | 169× |
-| ~~Exhale~~ (superseded) | 94,508 BEM (+1,565 NN-only, 2,454 skips) | 365 / 162 / 101 / 28,572 | 726 / 320 / 174 / 57,396 | 0.723 (0.393) | 0.025 (0.021) | 0.748 (0.413) | 9.3 (5.1) | 0.45 | 77× |
 
-**The last two rows are superseded and are not the paper's.** They are the
-earlier `fruits` / `exhale` sweeps (6,511 and 32,464 bubbles, 169× and 77×),
-kept only as mesh-size context; their summary JSONs are no longer shipped, so
-the timing cells cannot be re-derived here. The paper's Fruits and Exhalation
-numbers are the `fruit08` / `exhale15` rows of Table 1 above.
-
-## Regressors on the 10k dataset
-
-The regressor accuracy and timing table that used to sit here is removed. It
-was transcribed from an older run on a 7,001/1,499/1,499 split, so its MAPEs
-(linear 0.220, poly-2 0.062, poly-3 0.052, RBF 0.055, MLP 0.074) disagreed with
-the paper's Table 2, and its ledger never shipped.
-
-The paper's numbers live in
-[`../table02_regressor_comparison/`](../table02_regressor_comparison): accuracy
-and parameter counts from
-`python/freq_model/output/output_baseline_regressors_8feature/export_config.json`
-(7,000/1,500/1,500 split), per-bubble timing from
-`nn_framework_timing_tables.json`.
-
-One qualitative result from that older work still stands and is what the paper
-argues: the polynomial regressors match the MLP in distribution but can
-extrapolate badly off it, producing exp-overflow frequencies in log-f space,
-while the bounded MLP degrades gracefully.
+Regressor accuracy and timing (Table 2) are in
+[`../table02_regressor_comparison/`](../table02_regressor_comparison).
 
 ## Notes
 
@@ -89,7 +61,7 @@ while the bounded MLP degrades gracefully.
 - `nn8_vs_bem_ellipsoid.csv`, `nn8_vs_bem_curl_noise.csv`, `nn8_vs_bem_enright_test.csv`
   (per-frame rows + AVERAGE + hardware metadata); `enright_summary.json`.
 - `batched_gpu_inference.json` — batched Fruits/Exhale inference (GPU + CPU).
-- `all_bubbles/fruit08/` and `all_bubbles/exhale15/` — the two final sweeps, run with
+- `all_bubbles/fruit08/` and `all_bubbles/exhale15/` — the two sweeps, run with
   `python/utils/nn8_vs_bem_all_bubbles_chunked.py`. Only `<scene>_all_summary.json`
   (plus fruit08's per-bubble BEM timing CSV) ships; the merged per-row CSVs and vertex
-  scans are hundreds of MB and were left out.
+  scans are hundreds of MB and are not included.

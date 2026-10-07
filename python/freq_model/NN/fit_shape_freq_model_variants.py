@@ -1,38 +1,30 @@
-"""Train the BubbleFreqNet variants the shipped production trainer cannot: the
-ellipsoid-proxy log-residual objective, and either objective over a split with a
-named set of bubbles held out.
+"""Train the two learned heads of the paper's Fig. 4: the ellipsoid-proxy
+log-residual head and the direct head, on a split that holds a named set of
+bubbles out of training and validation.
 
-Both learned series of the paper's Fig. 4 are trained here. The objectives
-differ only in what the network is asked to predict:
+The two objectives differ only in the regression target:
 
-``--baseline strasberg``  (default) the residual objective ---
+``--baseline strasberg``  (default) residual ---
     y = log(f_BEM) - log(f_strasberg),  f_pred = f_strasberg * exp(y_pred)
-``--baseline none``       the direct objective, matching the shipped
-    ``fit_shape_freq_model.py`` --- y = log(f_BEM), f_pred = exp(y_pred)
+``--baseline none``       direct, the same target as ``fit_shape_freq_model.py``
+    --- y = log(f_BEM), f_pred = exp(y_pred)
 
-``training.py`` was written around the first and defaults to it (``BASELINE_COL``
-/ ``BASELINE_KIND`` there); the direct case is the one that passes an all-zeros
-``log_fs``. Row filtering and feature construction are imported wholesale from
-the production trainer, so every variant sees exactly the same rows in the same
-order.
+Row filtering and feature construction come from ``fit_shape_freq_model.py``, so
+every variant sees the same rows in the same order. The direct objective passes
+an all-zeros baseline (``log_fs``) to ``training.py``.
 
-Two feature sets:
+Both heads use the production feature set (``fit_shape_freq_model.FEATURE_COLS``):
+2 inertia ratios, 3 Wadell-style axes, 3 convex-hull axes.
 
-``--features 8``  (default) the production set --- 2 inertia ratios, 3
-                  Wadell-style axes, 3 convex-hull axes.
-``--features 6``  the set the published Fig. 4 models used --- the same list
-                  without the two inertia ratios.
+``--holdout-mesh-ids`` keeps the listed bubbles out of train and val. Fig. 4 holds
+out its 100 panel bubbles
+(``results/experiments/fig04_per_bin_model_error/selected_rows.csv``), so every
+bubble it scores is unseen by the model scoring it. The held-out rows are
+written to ``holdout_predictions.csv`` with per-row APE. Without the flag the
+split is the seeded 70/15/15.
 
-``--holdout-mesh-ids`` pins a named set of bubbles outside train and val, so a
-fixed evaluation set stays genuinely held out. That is what makes an honest
-Fig. 4 retrain possible: 51 of that figure's 100 bubbles fall in the reference
-split's *training* set, so scoring them against a model trained on that split
-would report training error for half the panel. The held-out rows are written to
-``holdout_predictions.csv`` with per-row APE. Without the flag the split is the
-plain seeded 70/15/15.
-
-``--baseline none`` here is NOT the shipped production model: the holdout changes
-the split, so its checkpoint is for controlled comparison, not for release.
+The ``--baseline none`` checkpoint trained here is not the released model
+(``output_8feature_direct_bubblegym_10k``): holding bubbles out changes the split.
 """
 
 from __future__ import annotations
@@ -75,12 +67,6 @@ from freq_model.NN.training import (  # noqa: E402
 BASELINE_COL = "f_strasberg"
 BASELINE_KIND = {"strasberg": "strasberg_log_residual", "none": "none_log_direct"}
 
-# FEATURE_COLS_8 is [i11_over_i00, i22_over_i00, <3 Wadell>, <3 convex hull>],
-# so the published six-feature set is exactly its tail.
-FEATURE_COLS_6 = FEATURE_COLS_8[2:]
-assert FEATURE_COLS_6 == ["non_sph_va", "non_sph_vm", "non_sph_w", "eta_V", "eta_A", "eta_M"]
-
-
 MODEL_FILENAME = "bubble_freq_net_best.pt"
 
 
@@ -97,8 +83,8 @@ def _split_with_holdout(
 ) -> tuple[SplitData, np.ndarray]:
     """Seeded split over the rows NOT in ``holdout``; returns the holdout rows too.
 
-    The holdout rows never reach train or val, so a model trained here can be
-    evaluated on them honestly. They are not folded into the test split either,
+    The holdout rows never reach train or val, so they are unseen data for a model
+    trained here. They are not folded into the test split either,
     which keeps the reported test metric comparable to a run without a holdout.
     """
     is_held = np.array([m in holdout for m in mesh_ids], dtype=bool)
@@ -123,8 +109,7 @@ def main() -> None:
                         default=Path("dataset/bubble_gym/dataset_bubblegym_10k.csv"))
     parser.add_argument("--output-dir", type=Path, default=None,
                         help="Default: python/freq_model/output/fig04_retrain/"
-                             "<N>feature_<objective>")
-    parser.add_argument("--features", type=int, choices=(6, 8), default=8)
+                             "8feature_<objective>")
     parser.add_argument("--baseline", choices=("strasberg", "none"), default="strasberg",
                         help="'strasberg' learns the ellipsoid-proxy log-residual; "
                              "'none' learns log(f_BEM) directly.")
@@ -144,12 +129,12 @@ def main() -> None:
                         default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
-    feature_cols = FEATURE_COLS_8 if args.features == 8 else FEATURE_COLS_6
+    feature_cols = FEATURE_COLS_8
     objective = "residual" if args.baseline == "strasberg" else "direct"
     baseline_kind = BASELINE_KIND[args.baseline]
     if args.output_dir is None:
         args.output_dir = Path(
-            f"python/freq_model/output/fig04_retrain/{args.features}feature_{objective}")
+            f"python/freq_model/output/fig04_retrain/8feature_{objective}")
 
     set_seed(args.seed)
     output_dir = args.output_dir.resolve()
@@ -157,7 +142,7 @@ def main() -> None:
 
     # Shared row filter + feature construction with the production trainer.
     x8, y_direct, zero_log_fs, df_used = load_xy(args.dataset.resolve())
-    x_raw = x8 if args.features == 8 else x8[:, 2:]
+    x_raw = x8
 
     f_base = df_used[BASELINE_COL].to_numpy(dtype=np.float64)
     if not np.all(f_base > 0.0):
@@ -270,7 +255,7 @@ def main() -> None:
         print(f"MAPE {holdout_metrics['mape']:.4f}%   max APE {holdout_metrics['max_ape']:.4f}%")
 
     cfg = {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}
-    cfg.update({"baseline_kind": baseline_kind,
+    cfg.update({"features": len(feature_cols), "baseline_kind": baseline_kind,
                 "baseline_col": BASELINE_COL if args.baseline == "strasberg" else "",
                 "feature_cols": feature_cols, "model_checkpoint": MODEL_FILENAME})
     (output_dir / "train_config.json").write_text(json.dumps(cfg, indent=2), encoding="utf-8")

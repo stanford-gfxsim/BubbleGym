@@ -14,18 +14,18 @@ md5sum dataset/bubble_theater/curl_noise/trackedBubInfo_NN.txt
 
 | file | lines | bytes (LF) | MD5 (LF) | MD5 (CRLF) |
 | --- | ---: | ---: | --- | --- |
-| `bubble_theater/curl_noise/trackedBubInfo_BEM.txt` | 183 | 5,815 | `abd550bbacfcca076b6d703075577a97` | `b75d50b48f5f1eb5882f56fa9fd99b11` |
-| `bubble_theater/curl_noise/trackedBubInfo_Ellipsoid.txt` | 183 | 5,815 | `750f212e4ecc14471354429f5920c1e1` | `218ac8c1d6248ff1d4eea7194bdf8aef` |
-| `bubble_theater/curl_noise/trackedBubInfo_Minnaert.txt` | 183 | 5,815 | `3eb1241d631809f632399060693f0c27` | `b4c61958b59707a17eb7cece859809f9` |
-| `bubble_theater/curl_noise/trackedBubInfo_NN.txt` | 183 | 5,815 | `3879dcbffe9d4a81a2d04f49ee681a32` | `789ed049ed4737530968b63bd06643b0` |
-| `bubble_theater/ellipsoid/trackedBubInfo_BEM.txt` | 183 | 5,815 | `2e0efd995537b015455201b6c7a4b01f` | `92a393301de7258611b3b9eaf89100c8` |
-| `bubble_theater/ellipsoid/trackedBubInfo_Ellipsoid.txt` | 183 | 5,815 | `fbca8a1a9def55c59c4cea0eafcd2ebb` | `b7c4643d582443ca939a7dcecfb91f17` |
-| `bubble_theater/ellipsoid/trackedBubInfo_Minnaert.txt` | 183 | 5,815 | `3eb1241d631809f632399060693f0c27` | `b4c61958b59707a17eb7cece859809f9` |
-| `bubble_theater/ellipsoid/trackedBubInfo_NN.txt` | 183 | 5,815 | `f1827a34ab0de682497c136b8dc2545b` | `e74ae6bc2e39562fadfc47d0156f984e` |
-| `bubble_theater/enright_test/trackedBubInfo_BEM.txt` | 123 | 3,882 | `71cdc2e0776723f4c1c2504229927fef` | `1405ef052139e2223d2b615572cda479` |
-| `bubble_theater/enright_test/trackedBubInfo_Ellipsoid.txt` | 123 | 3,882 | `8a70dded8fe58867ce2422dc15177c3e` | `206b2764d8247360d39acef1ac99d930` |
+| `bubble_theater/curl_noise/trackedBubInfo_BEM.txt` | 243 | 7,712 | `95bda8a1ddc597c9a04f6220e85e3301` | `44a11f47dca10f800d1fa3754671ad1e` |
+| `bubble_theater/curl_noise/trackedBubInfo_Ellipsoid.txt` | 243 | 7,712 | `a535df59dcf0948a7853d5e8097bef24` | `aae6b018184a865155a30a27cf4caa61` |
+| `bubble_theater/curl_noise/trackedBubInfo_Minnaert.txt` | 243 | 7,712 | `20df72dd3b3fa9edc2f2673ae79ca63c` | `3b131fea3bb26c1a2c39bb8a90837c0c` |
+| `bubble_theater/curl_noise/trackedBubInfo_NN.txt` | 243 | 7,712 | `2a240c405d27927c77e27b4f727d72f5` | `b6d437a5d8abe7f9835f10c4773d74e5` |
+| `bubble_theater/ellipsoid/trackedBubInfo_BEM.txt` | 243 | 7,712 | `8e79fe9594d80a143b060e86c67e3dfa` | `15d4b4f81893ab6ee6d68e7a63729dab` |
+| `bubble_theater/ellipsoid/trackedBubInfo_Ellipsoid.txt` | 243 | 7,712 | `fe579f0dddbd9a530be61eb38caa114e` | `860198ebb52c6bf7610c2c68f4742426` |
+| `bubble_theater/ellipsoid/trackedBubInfo_Minnaert.txt` | 243 | 7,712 | `20df72dd3b3fa9edc2f2673ae79ca63c` | `3b131fea3bb26c1a2c39bb8a90837c0c` |
+| `bubble_theater/ellipsoid/trackedBubInfo_NN.txt` | 243 | 7,712 | `eaf370aba2a55691233df17e6e8b82a6` | `7380fedc66b07b77267ea97d4a1c1194` |
+| `bubble_theater/enright_test/trackedBubInfo_BEM.txt` | 123 | 3,882 | `4d035376da43b74fb4cf0b094e9fe65d` | `dd1b6f7578e96621528a8975c8e32bad` |
+| `bubble_theater/enright_test/trackedBubInfo_Ellipsoid.txt` | 123 | 3,882 | `92f34db71376b467188854e9fa6c292a` | `05c5226c5830f8f002d122dd4b38a580` |
 | `bubble_theater/enright_test/trackedBubInfo_Minnaert.txt` | 123 | 3,882 | `d85cf28f5de6b7bfff87ad573b57c7f8` | `153981bc2c74eda0ab8fe6e8769876b6` |
-| `bubble_theater/enright_test/trackedBubInfo_NN.txt` | 123 | 3,882 | `a99cb58b452a38aca45ec3682c5d493a` | `1dbbade056348693390507d591aeef15` |
+| `bubble_theater/enright_test/trackedBubInfo_NN.txt` | 123 | 3,882 | `23842a7d1c51f79483fa7cabbe76f6ea` | `43b547cc90d5fbfcf994c5c6a00be100` |
 | `single_rising_bubble/trackedBubInfo_BEM.txt.xz` | 201,298 | 12,352,175 | `12033dc97fa51fb764c1899de4ef61cf` | `e2c09f9afdec3bc3d3ed5a75e68198ed` |
 | `single_rising_bubble/trackedBubInfo_Minnaert.txt.xz` | 201,298 | 11,770,134 | `f2a9ebccbb4ce9bc5daa60977ca3ef39` | `80057cea83851d08f4189b9e8ed0e6d6` |
 | `single_rising_bubble/trackedBubInfo_NN.txt.xz` | 201,298 | 12,351,993 | `b73c513e0ccd7b8f0452cc77d7b1e214` | `352bc59a14d4c18ca2fced963b86d77a` |

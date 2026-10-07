@@ -64,7 +64,7 @@ rather than returning an integral computed over an open surface.
 - **Network** (`NN/`): `bub_freq_net.py` (architecture, §5.2.2),
   `fit_shape_freq_model.py` (the production trainer — 8 features → `log f`,
   Eq. 16), `fit_shape_freq_model_variants.py` (the same trainer over objective
-  and feature-set variants, used for the Fig. 4 retrains),
+  and feature-set variants; trains Fig. 4's two heads),
   `eval_alt_bin_sets.py` (Fig. 4's panel re-binned on other descriptors),
   `nn_inference.py` (load a checkpoint and run it over per-frame features),
   `bubble_dataset.py`, `training.py`, `stratified_eval_model.py` (per-bin error,
@@ -144,7 +144,6 @@ toggles, per-bubble thumbnails with feature bars, and a light/dark theme.
 `plot_dataset_distribution.py` holds the shared thumbnail renderer.
 
 Fig. 4 and its variants: `plot_per_bin_mape_bars.py` (the per-bin error panel),
-`plot_fig04_retrained_comparison.py` (the panel with the retrained models),
 `plot_alt_bin_sets.py` and `plot_feature_axis_panels.py` (the same panel
 re-binned on other axes), and `bin_thumbnail_strip.py`, which places the mesh
 thumbnails under each bin.

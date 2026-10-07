@@ -89,6 +89,14 @@ DEFAULT_ARTIFACTS_NN8 = (
 # is implemented by analytical/strasberg_freq.py, so "strasberg" stays an
 # accepted alias for anyone following the older naming.
 METHOD_TAGS = ("Minnaert", "Ellipsoid", "NN8", "BEM")
+# On-disk name per method: the network's file is trackedBubInfo_NN.txt, as
+# shipped in dataset/bubble_theater/<scene>/.
+FILE_TAGS = {"Minnaert": "Minnaert", "Ellipsoid": "Ellipsoid", "NN8": "NN", "BEM": "BEM"}
+
+
+def tracked_name(tag: str) -> str:
+    """``trackedBubInfo_<file tag>.txt`` for a method tag in METHOD_TAGS."""
+    return f"trackedBubInfo_{FILE_TAGS[tag]}.txt"
 METHOD_ALIASES = {
     "minnaert": "Minnaert",
     "ellipsoid": "Ellipsoid",
@@ -1007,7 +1015,7 @@ def main() -> int:
         # SystemExit instead of getting silently dropped from the
         # downstream summary / CSV / PNG dispatch.
         for tag in methods:
-            p = resolve_tracked_path(output_dir / f"trackedBubInfo_{tag}.txt")
+            p = resolve_tracked_path(output_dir / tracked_name(tag))
             if not p.is_file():
                 missing.append(p)
                 continue
@@ -1018,8 +1026,8 @@ def main() -> int:
             elif t_arr.shape != times_ao.shape:
                 raise SystemExit(
                     f"row-count mismatch in --replot-only mode: "
-                    f"trackedBubInfo_{tag}.txt has {t_arr.size} sample row(s) "
-                    f"but trackedBubInfo_{times_ref_tag}.txt has "
+                    f"{tracked_name(tag)} has {t_arr.size} sample row(s) "
+                    f"but {tracked_name(times_ref_tag)} has "
                     f"{times_ao.size}. Replot-only requires matching row "
                     f"counts across every method."
                 )
@@ -1271,7 +1279,7 @@ def main() -> int:
     for tag in METHOD_TAGS:
         if tag not in methods:
             continue
-        tracked_path = output_dir / f"trackedBubInfo_{tag}.txt"
+        tracked_path = output_dir / tracked_name(tag)
         _write_tracked_bubinfo(
             tracked_path,
             times,

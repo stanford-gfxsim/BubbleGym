@@ -3,12 +3,11 @@
 Fig. 4 bins on Wadell nonsphericity. A model can flatter itself on one axis, so
 this repeats the panel on three others --- inertia anisotropy, convex-hull
 deficit and Willmore excess --- each with its own 10 bins x 10 bubbles drawn from
-the retrained models' test split, which they never saw.
+the two heads' test split, which they never saw.
 
-Panel A is Fig. 4's own 100 meshes with the retrained models, for reference; the
-other three are the fresh draws written by
-``freq_model/NN/eval_alt_bin_sets.py``. All four share one log axis, so the
-panels can be read against each other.
+Panel A is Fig. 4 itself (``alt_bin_sets/non_sph_va``); the other three are the
+draws written by ``freq_model/NN/eval_alt_bin_sets.py``. All four share one log
+axis, so the panels can be read against each other.
 
 Usage:
     python python/visualization/plot_alt_bin_sets.py
@@ -35,26 +34,11 @@ SERIES = [
     ("residual", "Residual-learning surrogate", TEAL, "-", "o"),
     ("direct", "Direct-learning surrogate", ORANGE, "-", "s"),
 ]
-ALT_AXES = ["inertia", "chull", "willmore"]
-
-
-def _fig04_panel(fig04_dir: Path) -> tuple[dict[str, np.ndarray], dict[str, float]]:
-    """Fig. 4's 100 meshes, scored with the retrained models."""
-    pb = pd.read_csv(fig04_dir / "per_bin_mape_retrained_10k.csv")
-    rows = pd.read_csv(fig04_dir / "selected_rows.csv")
-    bins = rows["bin"].to_numpy()
-    key_of = {"minnaert": "minnaert", "strasberg": "strasberg",
-              "residual": "residual_retrained_8feat", "direct": "direct_retrained_8feat"}
-    per_bin, overall = {}, {}
-    for k, src in key_of.items():
-        per_bin[k] = pb[pb.series == src].sort_values("bin")["mape_pct"].to_numpy()
-        col = {"minnaert": "ape_minnaert", "strasberg": "ape_strasberg"}.get(k)
-        if col is not None:
-            overall[k] = float(rows[col].mean())
-        else:
-            # weight-free mean over equal-sized bins is the overall mean
-            overall[k] = float(per_bin[k].mean())
-    return per_bin, overall
+# Panel A is Fig. 4's own binning; the rest are the alternative axes.
+AXES = [("non_sph_va", "Fig. 4"),
+        ("inertia", "draw from the held-out test split"),
+        ("chull", "draw from the held-out test split"),
+        ("willmore", "draw from the held-out test split")]
 
 
 def main() -> None:
@@ -71,11 +55,7 @@ def main() -> None:
         args.out = args.fig04_dir / f"alt_bin_sets{'_dark' if args.dark else ''}.png"
 
     panels = []
-    pb0, ov0 = _fig04_panel(args.fig04_dir)
-    panels.append(("Wadell nonsphericity  $1-\\Phi_{VA}$",
-                   "Fig. 4's own 100 meshes", pb0, ov0))
-
-    for name in ALT_AXES:
+    for name, note in AXES:
         d = args.fig04_dir / "alt_bin_sets" / name
         if not (d / "per_bin_mape.csv").is_file():
             raise SystemExit(
@@ -85,8 +65,7 @@ def main() -> None:
         pb = pd.read_csv(d / "per_bin_mape.csv")
         per_bin = {k: pb[pb.series == k].sort_values("bin")["mape_pct"].to_numpy()
                    for k, *_ in SERIES}
-        panels.append((s["axis_label"], "fresh draw from the held-out test split",
-                       per_bin, s["overall_mape_pct"]))
+        panels.append((s["axis_label"], note, per_bin, s["overall_mape_pct"]))
 
     fg = "white" if args.dark else "black"
     fig, axes = plt.subplots(2, 2, figsize=(12.6, 7.4), dpi=args.dpi, sharey=True)

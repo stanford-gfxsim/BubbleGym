@@ -1,16 +1,16 @@
-"""Fig. 4 as it now appears in the paper: the Wadell-binned panel of retrained models.
+"""Fig. 4: per-bin error of the baselines and both learned heads, binned on Wadell nonsphericity.
 
-Draws ``alt_bin_sets/non_sph_va`` -- 100 bubbles from the 8-feature retrains'
-test split, ten bins of Wadell nonsphericity ``1 - Phi_VA`` -- in the published
-figure's layout, with the published figure's own ten renders beneath it.
+Draws ``alt_bin_sets/non_sph_va`` -- 100 bubbles from the test split of the two
+8-feature heads (``python/freq_model/output/fig04_retrain/8feature_*``), ten bins
+of Wadell nonsphericity ``1 - Phi_VA`` -- with ten bubble renders beneath it.
 
-Those renders are not members of this panel: they come from the original Fig. 4
-set (``selected_rows.csv``), which the retrains held out entirely. The script
-re-derives them with the published picker's rule -- in each of that set's bins,
-the VOF bubble nearest the bin's median nonsphericity, ties going to the one
-earlier in the 10k dataset CSV -- and checks the result against the ten ids
-recorded in ``paper_thumbnails.json``. They illustrate each bin's shape range,
-so the script also refuses to draw one that falls outside its bin here.
+The renders come from the 100-bubble hold-out set (``selected_rows.csv``), which
+both heads kept out of training and validation, not from the panel itself. In
+each of that set's bins the script picks the VOF bubble nearest the bin's median
+nonsphericity, ties going to the one earlier in the 10k dataset CSV, and checks
+the result against the ten ids recorded in ``paper_thumbnails.json``. The renders
+illustrate each bin's shape range, so the script refuses to draw one that falls
+outside its bin here.
 
 Usage:
     python python/visualization/plot_fig04_wadell_panel.py

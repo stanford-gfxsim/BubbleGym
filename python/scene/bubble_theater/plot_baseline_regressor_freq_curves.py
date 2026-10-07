@@ -15,13 +15,13 @@ are copied verbatim from the scene's existing ``freq_curves.csv`` -- nothing is
 re-solved. Baselines are re-fitted on the paper's train split (seed 42, asserted
 against ``split.json``) with the validation-selected hyperparameters.
 
-REQUIRED INPUTS (none of the result-side files ship with this repo; generate
-them before running, or point the flags at your own copies):
+INPUTS (all shipped):
 
-* ``<--results-root>/<name>_result/freq_curves.csv`` and
-  ``trackedBubInfo_Minnaert.txt`` -- written by
-  ``render_bubble_theater.py`` for that scene; the CSV's row count also sets N.
-  Default results root: ``results/bubble_theater/``.
+* ``<--results-root>/<name>_result/freq_curves.csv`` -- the scene's per-frame
+  curves; its row count also sets N. Default results root:
+  ``results/experiments/fig01_bubble_theater/``.
+* ``dataset/bubble_theater/<name>/trackedBubInfo_Minnaert.txt`` -- read for the
+  scene's equivalent radius ``R_eq``.
 * ``results/experiments/table02_regressor_comparison/baseline_metrics.json`` --
   the hyperparameters chosen by
   ``python/freq_model/regression/baseline_regressors_8feat.py``
@@ -123,8 +123,8 @@ R_UNIT = (3.0 / (4.0 * math.pi)) ** (1.0 / 3.0)
 PLOT_SERIES: list[tuple[str, str, dict]] = [
     # (csv column, legend label, matplotlib style)
     ("f_minnaert", "Minnaert", {"color": "#7F7F7F", "linestyle": "--", "linewidth": 1.6}),
-    ("f_strasberg", "Ellipsoid", {"color": "#1F77B4", "linestyle": "-", "linewidth": 1.6}),
-    ("f_nn8", "Learning model", {"color": "#FF7F0E", "linestyle": "-", "linewidth": 1.8}),
+    ("f_strasberg", "Ellipsoid proxy", {"color": "#1F77B4", "linestyle": "-", "linewidth": 1.6}),
+    ("f_nn8", "Learned model", {"color": "#FF7F0E", "linestyle": "-", "linewidth": 1.8}),
     ("f_bem", "BEM", {"color": "#2CA02C", "linestyle": "-", "linewidth": 1.6}),
     ("f_linear", "Linear", {"color": "#E377C2", "linestyle": (0, (4, 2)), "linewidth": 1.6}),
     ("f_poly2", "Poly (deg 2)", {"color": "#9467BD", "linestyle": (0, (1, 1)), "linewidth": 1.8}),
@@ -306,15 +306,20 @@ COLUMN_WIDTH_IN = 243.15 / 72.0
 STACKED_PANEL_LABELS = {
     "ellipsoid": "Ellipsoid",
     "curl_noise": "Curl noise",
-    "enright_test": "Enright deformation",
+    "enright_test": "Enright test",
 }
+# Panel header band and legend box, as in the published figure.
+STACKED_BAND_COLOR = "#E4ECF7"
+STACKED_BAND_TEXT_COLOR = "#1F2A44"
+STACKED_LEGEND_FACE = "#F2F5FA"
+STACKED_LEGEND_EDGE = "#C9D3E3"
 
 # Type sizes chosen against the 8pt acmtog caption: axis labels match it, ticks
 # and legend sit just under. Line widths are scaled down from the single-panel
 # figure, whose 1.6-1.8pt strokes go muddy at a third of the width.
 STACKED_LABEL_FONTSIZE = 8.0
 STACKED_TICK_FONTSIZE = 6.5
-STACKED_LEGEND_FONTSIZE = 6.5
+STACKED_LEGEND_FONTSIZE = 6.0
 STACKED_TITLE_FONTSIZE = 7.0
 STACKED_LINEWIDTH_SCALE = 0.55
 
@@ -323,7 +328,7 @@ def plot_stacked(
     out_path: Path,
     panels: list[tuple[str, np.ndarray, dict[str, np.ndarray]]],
     width_in: float = COLUMN_WIDTH_IN,
-    panel_height_in: float = 1.12,
+    panel_height_in: float = 1.2,
     dpi: int = 600,
 ) -> None:
     """Draw every scene as one column-width figure, one row per scene.
@@ -348,9 +353,11 @@ def plot_stacked(
     )
     axes = np.atleast_1d(axes)
 
+    from matplotlib.patches import Rectangle
+
     handles: list[object] = []
     labels: list[str] = []
-    for ax, (scene, t, curves) in zip(axes, panels):
+    for i, (ax, (scene, t, curves)) in enumerate(zip(axes, panels)):
         for col, label, style in PLOT_SERIES:
             y = curves.get(col)
             if y is None:
@@ -364,12 +371,18 @@ def plot_stacked(
             if label not in labels:
                 handles.append(line)
                 labels.append(label)
-        ax.set_title(
-            STACKED_PANEL_LABELS.get(scene, scene),
-            fontsize=STACKED_TITLE_FONTSIZE,
-            loc="left",
-            pad=2.0,
+        # "(a) Ellipsoid" on a light band spanning the panel and its y tick labels.
+        band_h = 0.16
+        ax.add_patch(Rectangle(
+            (-0.09, 1.0), 1.09, band_h, transform=ax.transAxes, clip_on=False,
+            facecolor=STACKED_BAND_COLOR, edgecolor="none", zorder=0,
+        ))
+        ax.text(
+            -0.07, 1.0 + band_h / 2, f"({'abcdefgh'[i]}) {STACKED_PANEL_LABELS.get(scene, scene)}",
+            transform=ax.transAxes, ha="left", va="center",
+            fontsize=STACKED_TITLE_FONTSIZE, fontweight="bold", color=STACKED_BAND_TEXT_COLOR,
         )
+        ax.set_title(" ", fontsize=STACKED_TITLE_FONTSIZE, pad=3.0)  # reserves the band's space
         ax.grid(True, alpha=0.3, linewidth=0.4)
         ax.tick_params(
             axis="both", which="major", labelsize=STACKED_TICK_FONTSIZE,
@@ -388,17 +401,29 @@ def plot_stacked(
     # labels are shared.
     fig.supxlabel("Time (s)", fontsize=STACKED_LABEL_FONTSIZE)
     fig.supylabel("Frequency (Hz)", fontsize=STACKED_LABEL_FONTSIZE)
-    fig.legend(
-        handles,
-        labels,
+    # Four columns filled row by row: the four reference curves on the first
+    # row, the four regressors on the second. matplotlib fills legends column
+    # by column, so interleave the two halves.
+    half = (len(handles) + 1) // 2
+    order = [k for pair in zip(range(half), range(half, len(handles))) for k in pair]
+    order += [k for k in range(len(handles)) if k not in order]
+    leg = fig.legend(
+        [handles[k] for k in order],
+        [labels[k] for k in order],
         loc="outside upper center",
-        ncols=3,
-        frameon=False,
+        ncols=4,
+        frameon=True,
+        fancybox=True,
         fontsize=STACKED_LEGEND_FONTSIZE,
-        handlelength=2.4,
-        columnspacing=1.2,
-        borderaxespad=0.0,
+        handlelength=1.7,
+        columnspacing=0.6,
+        handletextpad=0.4,
+        borderpad=0.35,
+        borderaxespad=0.2,
     )
+    leg.get_frame().set_facecolor(STACKED_LEGEND_FACE)
+    leg.get_frame().set_edgecolor(STACKED_LEGEND_EDGE)
+    leg.get_frame().set_linewidth(0.5)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=dpi)
@@ -451,9 +476,9 @@ def main() -> int:
                         help=f"Figure width in inches for --stacked; match the "
                              f"target \\columnwidth so type lands at its nominal "
                              f"point size (default: {COLUMN_WIDTH_IN:.4f}).")
-    parser.add_argument("--stacked-panel-height-in", type=float, default=1.12,
+    parser.add_argument("--stacked-panel-height-in", type=float, default=1.2,
                         help="Height in inches of each panel for --stacked "
-                             "(default: 1.12).")
+                             "(default: 1.2).")
     parser.add_argument("--stacked-dpi", type=int, default=600,
                         help="Raster resolution for --stacked (default: 600).")
     args = parser.parse_args()
@@ -501,7 +526,7 @@ def main() -> int:
         result_dir = results_root / f"{scene}_result"
         curves_csv = result_dir / "freq_curves.csv"
         tracked_minnaert = resolve_tracked_path(
-            result_dir / "trackedBubInfo_Minnaert.txt"
+            PROCEDURAL_ROOT / scene / "trackedBubInfo_Minnaert.txt"
         )
         for p in (mesh_dir, result_dir):
             if not p.is_dir():

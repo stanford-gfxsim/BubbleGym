@@ -2,7 +2,7 @@
 
 Fig. 4 bins on a single shape measure. The surrogates take eight, so this
 stratifies along each of them in turn --- 10 bins of 10 bubbles drawn from the
-retrained models' held-out test split --- and draws the same four series on each.
+two heads' test split, which they never saw --- and draws the same four series on each.
 
 The eight are binned on their **raw** value, ascending, so the panels are not all
 oriented the same way. ``non_sph_*`` and the two inertia ratios grow as a bubble

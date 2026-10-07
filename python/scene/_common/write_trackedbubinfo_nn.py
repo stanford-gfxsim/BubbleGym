@@ -37,7 +37,7 @@ from pathlib import Path  # noqa: E402
 
 import numpy as np  # noqa: E402
 
-PYTHON_ROOT = Path(__file__).resolve().parents[1]
+PYTHON_ROOT = Path(__file__).resolve().parents[2]
 FREQ_MODEL_ROOT = PYTHON_ROOT / "freq_model"
 BASELINE_ROOT = PYTHON_ROOT / "baseline"
 for _p in (PYTHON_ROOT, FREQ_MODEL_ROOT, BASELINE_ROOT):
