@@ -79,6 +79,15 @@ figcaption{font-size:14.5px; color:var(--muted); margin-top:9px}
 .seq .pitch{width:100%; height:auto; display:block; border:1px solid var(--rule);
             border-radius:6px; background:var(--panel)}
 @media (max-width:700px){ .frames{gap:5px} }
+/* Plots that ship a dark rendering show it in the dark theme: system dark
+   unless light is chosen, or dark chosen explicitly. */
+.seq .pitch-dark{display:none}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .seq .pitch-light{display:none}
+  :root:not([data-theme="light"]) .seq .pitch-dark{display:block}
+}
+:root[data-theme="dark"] .seq .pitch-light{display:none}
+:root[data-theme="dark"] .seq .pitch-dark{display:block}
 
 /* The scene's supplemental video (YouTube embed); aspect-ratio keeps it 16:9
    at any width. */
