@@ -682,7 +682,9 @@ def _plot_freq_curves(
         ax.set_xlim(float(times[0]), float(times[-1]))
 
     png_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(png_path, dpi=150)
+    # JPEG at quality 95, as the paper's panels were saved (Pillow defaults to 75).
+    jpeg = png_path.suffix.lower() in (".jpg", ".jpeg")
+    fig.savefig(png_path, dpi=150, **({"pil_kwargs": {"quality": 95}} if jpeg else {}))
     plt.close(fig)
 
 
