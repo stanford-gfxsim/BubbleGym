@@ -13,6 +13,9 @@ outputs
 *.log
 **/*.mp4
 **/*.pkf
+# ...except the project page's own media (the hero carousel videos and posters).
+!results/media/
+!results/media/*.mp4
 
 # Raw simulation output under dataset/ is not versioned, but the released
 # artifacts are: the format README, the 10k benchmark CSV and the four paper

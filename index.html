@@ -151,8 +151,41 @@
         background:var(--figure-bg)}
   /* Tall enough for the explorer's control panel to stand open without being
      clipped; the panel scrolls internally below that. */
-  .hero iframe{display:block; width:100%; height:clamp(640px,82vh,960px); border:0}
-  @media (max-width:700px){ .hero iframe{height:440px} }
+  .hero iframe{display:block; width:100%; height:100%; border:0}
+
+  /* ---- hero carousel: 10K gallery / shape space / shape morph, one at a time ---- */
+  .carousel{position:relative; height:clamp(640px,82vh,960px)}
+  /* the videos are 16:9: fit the frame to them instead of letterboxing */
+  .carousel.is-video{height:auto; aspect-ratio:16/9}
+  .carousel .slide{position:absolute; inset:0; visibility:hidden; opacity:0;
+                   transition:opacity .35s ease, visibility 0s linear .35s;
+                   display:flex; align-items:center; justify-content:center}
+  .carousel .slide.is-active{visibility:visible; opacity:1; transition:opacity .35s ease}
+  .carousel video{display:block; width:100%; height:100%; object-fit:contain;
+                  background:var(--figure-bg)}
+  .car-btn{position:absolute; top:50%; transform:translateY(-50%); z-index:3;
+           width:44px; height:44px; border-radius:50%; border:1px solid var(--rule);
+           background:var(--panel); color:var(--ink); font-size:24px; line-height:1;
+           cursor:pointer; display:flex; align-items:center; justify-content:center;
+           box-shadow:0 2px 8px rgba(0,0,0,.18); opacity:.9}
+  .car-btn:hover{opacity:1; border-color:var(--accent); color:var(--accent)}
+  .car-btn:focus-visible, .car-tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .car-prev{left:12px} .car-next{right:12px}
+  /* On the explorer the side midpoints hold its control panel: use the bottom corners. */
+  .carousel:not(.is-video) .car-btn{top:auto; bottom:12px; transform:none}
+  .car-tabs{display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin:14px 0 4px}
+  .car-tab{font:inherit; font-size:14px; padding:5px 14px; border-radius:999px;
+           border:1px solid var(--rule); background:transparent; color:var(--muted); cursor:pointer}
+  .car-tab[aria-selected="true"]{color:var(--ink); border-color:var(--accent);
+                                 background:var(--panel); font-weight:600}
+  .car-caption[hidden]{display:none}
+  @media (max-width:700px){
+    .carousel{height:auto; aspect-ratio:16/9; min-height:260px}
+    .car-btn{width:36px; height:36px; font-size:20px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .carousel .slide, .carousel .slide.is-active{transition:none}
+  }
   /* Widen past the text column: the negative margin recentres the wider box. */
   .hero-wide{width:var(--hero-w); margin-left:calc((100% - var(--hero-w)) / 2)}
   .hero-wide figcaption{max-width:820px; margin-left:auto; margin-right:auto;
@@ -315,31 +348,66 @@
 
 <div class="wrap">
 
-  <section class="hero-wide">
-    <div class="hero">
-      <!-- src is set by script, so the frame loads in the right theme. -->
-      <iframe id="explorer"
-              data-src="results/html/bubblegym_10k_nonsphericity_axes_3d.html"
-              title="Interactive 3D view of the BubbleGym shape space"
-              scrolling="no"
-              loading="lazy"></iframe>
-      <!-- Phones get a tap-through: the explorer is a ~6 MB 3D document. -->
-      <a class="hero-touch" href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">
-        <span class="ht-ico">&#127760;</span>
-        <span class="ht-t">Open the interactive shape space</span>
-        <span class="ht-s">10,000 bubbles in 3D &middot; large page, best on a wider screen</span>
-      </a>
-      <noscript>
-        <div class="fallback">
-          <a href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">Open the interactive shape space &#8599;</a>
-        </div>
-      </noscript>
+  <section class="hero-wide" id="showcase" aria-roledescription="carousel" aria-label="BubbleGym highlights">
+    <div class="hero carousel">
+      <!-- 1. the 10K dataset gallery (silent, loops while shown) -->
+      <div class="slide is-active" id="slide-gallery" role="tabpanel" aria-roledescription="slide" aria-label="1 of 3: dataset gallery">
+        <video muted loop playsinline preload="none" data-autoplay
+               poster="results/media/bubblegym_10k_gallery_poster.jpg"
+               aria-label="Zooming out over all 10,000 BubbleGym bubble meshes">
+          <source data-src="results/media/bubblegym_10k_gallery.mp4" type="video/mp4">
+        </video>
+      </div>
+      <!-- 2. interactive shape space -->
+      <div class="slide" id="slide-space" role="tabpanel" aria-roledescription="slide" aria-label="2 of 3: shape space">
+        <!-- src is set by script, so the frame loads in the right theme. -->
+        <iframe id="explorer"
+                data-src="results/html/bubblegym_10k_nonsphericity_axes_3d.html"
+                title="Interactive 3D view of the BubbleGym shape space"
+                scrolling="no"
+                loading="lazy"></iframe>
+        <!-- Phones get a tap-through: the explorer is a ~6 MB 3D document. -->
+        <a class="hero-touch" href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">
+          <span class="ht-ico">&#127760;</span>
+          <span class="ht-t">Open the interactive shape space</span>
+          <span class="ht-s">10,000 bubbles in 3D &middot; large page, best on a wider screen</span>
+        </a>
+        <noscript>
+          <div class="fallback">
+            <a href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">Open the interactive shape space &#8599;</a>
+          </div>
+        </noscript>
+      </div>
+      <!-- 3. shape morph with BEM vs. BubbleGym plinks (has sound) -->
+      <div class="slide" id="slide-morph" role="tabpanel" aria-roledescription="slide" aria-label="3 of 3: shape morph">
+        <video controls playsinline preload="none"
+               poster="results/media/shape_morph_bem_vs_ours_poster.jpg"
+               aria-label="A bubble morphing between five shapes, with BEM and BubbleGym frequencies">
+          <source data-src="results/media/shape_morph_bem_vs_ours.mp4" type="video/mp4">
+        </video>
+      </div>
+      <button type="button" class="car-btn car-prev" aria-label="Previous" aria-controls="showcase">&#8249;</button>
+      <button type="button" class="car-btn car-next" aria-label="Next" aria-controls="showcase">&#8250;</button>
     </div>
-    <figcaption>
+    <div class="car-tabs" role="tablist" aria-label="Choose what to show">
+      <button type="button" class="car-tab" role="tab" aria-selected="true" aria-controls="slide-gallery">10K dataset</button>
+      <button type="button" class="car-tab" role="tab" aria-selected="false" aria-controls="slide-space">Shape space</button>
+      <button type="button" class="car-tab" role="tab" aria-selected="false" aria-controls="slide-morph">Shape morph</button>
+    </div>
+    <figcaption class="car-caption" data-for="slide-gallery">
+      <b>The BubbleGym 10K dataset.</b> All 10,000 bubble meshes in the benchmark,
+      extracted from two-phase VOF and LBM simulations and normalized to unit volume.
+    </figcaption>
+    <figcaption class="car-caption" data-for="slide-space" hidden>
       <b>The BubbleGym shape space.</b> All 10,000 benchmark bubbles, positioned by
       their nonsphericity descriptors and coloured by resonant frequency relative
       to the Minnaert prediction for an equal-volume sphere. Drag to rotate.
       <a href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">Open full view &#8599;</a>
+    </figcaption>
+    <figcaption class="car-caption" data-for="slide-morph" hidden>
+      <b>Shape morph: BEM vs. BubbleGym.</b> One air bubble of constant volume morphs
+      through five shapes. The plinks alternate between the BEM ground truth and our
+      model; turn the sound on to compare.
     </figcaption>
   </section>
 
@@ -641,6 +709,68 @@ pip install -r requirements.txt
   }
 
   paintButton();
+})();
+
+/* ---- hero carousel: one slide at a time; videos load on first view, the gallery
+   loops silently while shown, and any video pauses when its slide is left. ---- */
+(function () {
+  var box = document.getElementById('showcase');
+  if (!box) return;
+  var stage = box.querySelector('.carousel');
+  var slides = Array.prototype.slice.call(box.querySelectorAll('.slide'));
+  var tabs = Array.prototype.slice.call(box.querySelectorAll('.car-tab'));
+  var caps = Array.prototype.slice.call(box.querySelectorAll('.car-caption'));
+  var cur = 0;
+
+  function loadVideo(v) {
+    if (v.dataset.loaded) return;
+    var s = v.querySelector('source[data-src]');
+    if (s) { s.src = s.getAttribute('data-src'); v.load(); }
+    v.dataset.loaded = '1';
+  }
+
+  function show(i) {
+    i = (i + slides.length) % slides.length;
+    slides.forEach(function (s, k) {
+      var on = k === i;
+      s.classList.toggle('is-active', on);
+      s.setAttribute('aria-hidden', String(!on));
+      var v = s.querySelector('video');
+      if (!v) return;
+      if (on) {
+        loadVideo(v);
+        if (v.hasAttribute('data-autoplay')) {
+          var p = v.play(); if (p && p.catch) p.catch(function () {});
+        }
+      } else if (!v.paused) {
+        v.pause();
+      }
+    });
+    tabs.forEach(function (t, k) {
+      t.setAttribute('aria-selected', String(k === i));
+      t.tabIndex = k === i ? 0 : -1;
+    });
+    caps.forEach(function (c) { c.hidden = c.getAttribute('data-for') !== slides[i].id; });
+    stage.classList.toggle('is-video', !!slides[i].querySelector('video'));
+    /* The frame changes height between the video slides and the explorer, so let
+       the explorer's plot refit to its new size once it is shown. */
+    var f = slides[i].querySelector('iframe');
+    if (f) {
+      try { f.contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
+    }
+    cur = i;
+  }
+
+  box.querySelector('.car-prev').addEventListener('click', function () { show(cur - 1); });
+  box.querySelector('.car-next').addEventListener('click', function () { show(cur + 1); });
+  tabs.forEach(function (t, k) { t.addEventListener('click', function () { show(k); }); });
+  /* Arrow keys work on the buttons and tabs; inside the 3D view they stay with the view. */
+  box.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'IFRAME' || e.target.tagName === 'VIDEO') return;
+    if (e.key === 'ArrowLeft') { show(cur - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { show(cur + 1); e.preventDefault(); }
+  });
+  show(0);
 })();
 </script>
 
