@@ -1567,8 +1567,11 @@ def main() -> None:
     parser.add_argument(
         "--thumbnail-dir",
         type=Path,
-        default=Path("dataset/bubble_gym/bubble_mesh_thumbnails_400x400/VOF"),
-        help="Directory containing thumbnails named like the mesh stem plus .png.",
+        default=Path("dataset/bubble_gym/bubble_mesh_thumbnails_100x100"),
+        help=(
+            "Thumbnail root. Images are looked up as <dir>/<mesh_id> with .png, so the "
+            "root holds the VOF/ and LBM/ folders (the shipped 100x100 set by default)."
+        ),
     )
     parser.add_argument(
         "--thumbnail-base-url",
