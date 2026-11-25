@@ -153,38 +153,76 @@
      clipped; the panel scrolls internally below that. */
   .hero iframe{display:block; width:100%; height:100%; border:0}
 
-  /* ---- hero carousel: 10K gallery / shape space / shape morph, one at a time ---- */
-  .carousel{position:relative; height:clamp(640px,82vh,960px)}
-  /* the videos are 16:9: fit the frame to them instead of letterboxing */
-  .carousel.is-video{height:auto; aspect-ratio:16/9}
-  .carousel .slide{position:absolute; inset:0; visibility:hidden; opacity:0;
-                   transition:opacity .35s ease, visibility 0s linear .35s;
-                   display:flex; align-items:center; justify-content:center}
-  .carousel .slide.is-active{visibility:visible; opacity:1; transition:opacity .35s ease}
+  /* ---- hero gallery: 10K gallery / shape space / shape morph. The selected slide
+     sits in the centre at full size; the other two wait to its left and right,
+     smaller and faded, and a click on either brings it forward. ---- */
+  /* The stage spans the whole window so the neighbours can sit in the margins;
+     --A is the selected slide's width. */
+  body{overflow-x:clip}
+  .carousel{position:relative; width:100vw; margin-left:calc(50% - 50vw);
+            border:0; border-radius:0; background:none; overflow:hidden;
+            --A:min(1100px, calc(100vw - 240px));
+            --H-video:calc(var(--A) * 9 / 16); --H-space:clamp(640px,82vh,960px);
+            --ease:cubic-bezier(.22,.61,.36,1);
+            height:calc(var(--H-video) + 40px); transition:height .6s var(--ease)}
+  /* the explorer needs height for its control panel; the 16:9 videos do not */
+  .carousel.is-space{height:calc(var(--H-space) + 40px)}
+  .carousel .slide{position:absolute; left:50%; top:50%; width:var(--A); height:var(--H-video);
+                   box-sizing:border-box; border:1px solid var(--rule); border-radius:8px;
+                   overflow:hidden; background:var(--figure-bg);
+                   display:flex; align-items:center; justify-content:center;
+                   transform:translate(-50%,-50%) translateX(var(--x,0px)) scale(var(--s,1));
+                   opacity:var(--o,1); filter:saturate(var(--sat,1)); z-index:var(--z,1);
+                   transition:transform .6s var(--ease), opacity .6s var(--ease),
+                              filter .6s var(--ease), height .6s var(--ease),
+                              box-shadow .6s var(--ease)}
+  /* the card going round: a quick exit past one edge, a quick entry from the other */
+  .carousel .slide.is-wrapping{transition-duration:.3s; transition-timing-function:ease-in-out}
+  .carousel .slide.no-anim{transition:none}
+  .carousel .slide.is-far-prev, .carousel .slide.is-far-next{--s:.6; --o:0; --sat:.3; --z:1}
+  .carousel .slide.is-far-prev{--x:calc(var(--A) * -1.6 - 56px)}
+  .carousel .slide.is-far-next{--x:calc(var(--A) * 1.6 + 56px)}
+  .carousel .slide.is-active{--z:3; box-shadow:0 10px 34px rgba(0,0,0,.16)}
+  .carousel #slide-space.is-active{height:var(--H-space)}
+  /* neighbours: 78% size, inner edge 28px clear of the selected slide, faded */
+  .carousel .slide.is-prev, .carousel .slide.is-next{--s:.78; --o:.35; --sat:.3; --z:2}
+  .carousel .slide.is-prev{--x:calc(var(--A) * -.89 - 28px)}
+  .carousel .slide.is-next{--x:calc(var(--A) * .89 + 28px)}
+  .carousel .slide.is-prev:hover, .carousel .slide.is-next:hover{--o:.6; --sat:.75}
   .carousel video{display:block; width:100%; height:100%; object-fit:contain;
                   background:var(--figure-bg)}
-  .car-btn{position:absolute; top:50%; transform:translateY(-50%); z-index:3;
+  /* a neighbour is one click target; what is inside it stays asleep */
+  .slide-cover{position:absolute; inset:0; z-index:2; display:none; border:0; padding:0;
+               background:transparent; cursor:pointer}
+  .slide:not(.is-active) .slide-cover{display:block}
+  .car-btn{position:absolute; top:50%; transform:translate(-50%,-50%); z-index:4;
            width:44px; height:44px; border-radius:50%; border:1px solid var(--rule);
            background:var(--panel); color:var(--ink); font-size:24px; line-height:1;
            cursor:pointer; display:flex; align-items:center; justify-content:center;
            box-shadow:0 2px 8px rgba(0,0,0,.18); opacity:.9}
   .car-btn:hover{opacity:1; border-color:var(--accent); color:var(--accent)}
-  .car-btn:focus-visible, .car-tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-  .car-prev{left:12px} .car-next{right:12px}
-  /* On the explorer the side midpoints hold its control panel: use the bottom corners. */
-  .carousel:not(.is-video) .car-btn{top:auto; bottom:12px; transform:none}
+  .car-btn:focus-visible, .car-tab:focus-visible, .slide-cover:focus-visible{
+           outline:2px solid var(--accent); outline-offset:2px}
+  /* the arrows sit in the gaps between the selected slide and its neighbours */
+  .car-prev{left:calc(50% - var(--A) / 2 - 14px)}
+  .car-next{left:calc(50% + var(--A) / 2 + 14px)}
   .car-tabs{display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin:14px 0 4px}
   .car-tab{font:inherit; font-size:14px; padding:5px 14px; border-radius:999px;
            border:1px solid var(--rule); background:transparent; color:var(--muted); cursor:pointer}
   .car-tab[aria-selected="true"]{color:var(--ink); border-color:var(--accent);
                                  background:var(--panel); font-weight:600}
   .car-caption[hidden]{display:none}
+  /* Phones: one slide at a time, no neighbours (the explorer is a tap-through). */
   @media (max-width:700px){
-    .carousel{height:auto; aspect-ratio:16/9; min-height:260px}
+    .carousel{--A:calc(100vw - 32px); --H-space:max(260px, var(--H-video))}
+    .carousel .slide{min-height:260px}
+    .carousel .slide.is-prev, .carousel .slide.is-next{--o:0; pointer-events:none}
     .car-btn{width:36px; height:36px; font-size:20px}
+    .car-prev{left:calc(50% - var(--A) / 2 + 26px)}
+    .car-next{left:calc(50% + var(--A) / 2 - 26px)}
   }
   @media (prefers-reduced-motion:reduce){
-    .carousel .slide, .carousel .slide.is-active{transition:none}
+    .carousel, .carousel .slide{transition:none}
   }
   /* Widen past the text column: the negative margin recentres the wider box. */
   .hero-wide{width:var(--hero-w); margin-left:calc((100% - var(--hero-w)) / 2)}
@@ -357,6 +395,7 @@
                aria-label="Zooming out over all 10,000 BubbleGym bubble meshes">
           <source data-src="results/media/bubblegym_10k_gallery.mp4" type="video/mp4">
         </video>
+        <button type="button" class="slide-cover" aria-label="Show the 10K dataset gallery"></button>
       </div>
       <!-- 2. interactive shape space -->
       <div class="slide" id="slide-space" role="tabpanel" aria-roledescription="slide" aria-label="2 of 3: shape space">
@@ -377,6 +416,7 @@
             <a href="results/html/bubblegym_10k_nonsphericity_axes_3d.html">Open the interactive shape space &#8599;</a>
           </div>
         </noscript>
+        <button type="button" class="slide-cover" aria-label="Show the interactive shape space"></button>
       </div>
       <!-- 3. shape morph with BEM vs. BubbleGym plinks (has sound) -->
       <div class="slide" id="slide-morph" role="tabpanel" aria-roledescription="slide" aria-label="3 of 3: shape morph">
@@ -385,6 +425,7 @@
                aria-label="A bubble morphing between five shapes, with BEM and BubbleGym frequencies">
           <source data-src="results/media/shape_morph_bem_vs_ours.mp4" type="video/mp4">
         </video>
+        <button type="button" class="slide-cover" aria-label="Show the shape morph video"></button>
       </div>
       <button type="button" class="car-btn car-prev" aria-label="Previous" aria-controls="showcase">&#8249;</button>
       <button type="button" class="car-btn car-next" aria-label="Next" aria-controls="showcase">&#8250;</button>
@@ -683,7 +724,7 @@ pip install -r requirements.txt
   /* The explorer is a single ~6 MB document, so browsers hold on to it hard.
      Bump this token whenever it is regenerated, or a reader keeps the old copy
      and any fix to it appears not to have happened. */
-  var EXPLORER_BUILD = '2026-09-16e';
+  var EXPLORER_BUILD = '2026-11-24';
   var wide = !(window.matchMedia && window.matchMedia('(max-width:700px)').matches);
   if (frame && wide) {
     frame.src = frame.getAttribute('data-src')
@@ -720,7 +761,7 @@ pip install -r requirements.txt
   var slides = Array.prototype.slice.call(box.querySelectorAll('.slide'));
   var tabs = Array.prototype.slice.call(box.querySelectorAll('.car-tab'));
   var caps = Array.prototype.slice.call(box.querySelectorAll('.car-caption'));
-  var cur = 0;
+  var cur = null;
 
   function loadVideo(v) {
     if (v.dataset.loaded) return;
@@ -729,12 +770,51 @@ pip install -r requirements.txt
     v.dataset.loaded = '1';
   }
 
+  var n = slides.length;
+  var ROLES = ['is-active', 'is-prev', 'is-next', 'is-far-prev', 'is-far-next'];
+  function role(k, i) {
+    return k === i ? 'is-active' : k === (i - 1 + n) % n ? 'is-prev' : 'is-next';
+  }
+  function setRole(s, r) {
+    ROLES.forEach(function (c) { s.classList.toggle(c, c === r); });
+  }
+  /* The row moves like an endless strip: every card slides the same way, and the
+     one that goes round leaves past the far edge and comes back in from the
+     other side, instead of cutting across behind the selected slide. */
+  function wrap(s, outSide, inSide, finalRole) {
+    clearTimeout(s._wrapTimer);
+    s.classList.add('is-wrapping');
+    setRole(s, outSide);
+    s._wrapTimer = setTimeout(function () {
+      s.classList.add('no-anim');
+      setRole(s, inSide);
+      void s.offsetWidth;            /* commit the jump before animating back in */
+      s.classList.remove('no-anim');
+      setRole(s, finalRole);
+      s._wrapTimer = setTimeout(function () { s.classList.remove('is-wrapping'); }, 320);
+    }, 300);
+  }
   function show(i) {
-    i = (i + slides.length) % slides.length;
+    i = (i + n) % n;
+    var step = cur === null ? 0 : (i - cur + n) % n;   /* 1 = forward, n-1 = back */
     slides.forEach(function (s, k) {
       var on = k === i;
-      s.classList.toggle('is-active', on);
+      var was = cur === null ? null : role(k, cur), now = role(k, i);
+      if (step === 1 && was === 'is-prev' && now === 'is-next') {
+        wrap(s, 'is-far-prev', 'is-far-next', now);
+      } else if (step === n - 1 && was === 'is-next' && now === 'is-prev') {
+        wrap(s, 'is-far-next', 'is-far-prev', now);
+      } else {
+        clearTimeout(s._wrapTimer);
+        s.classList.remove('is-wrapping', 'no-anim');
+        setRole(s, now);
+      }
       s.setAttribute('aria-hidden', String(!on));
+      /* a neighbour's video, explorer and links take no clicks or focus;
+         its cover button is what brings it forward */
+      Array.prototype.forEach.call(s.querySelectorAll('video, iframe, a'), function (el) {
+        if (on) el.removeAttribute('inert'); else el.setAttribute('inert', '');
+      });
       var v = s.querySelector('video');
       if (!v) return;
       if (on) {
@@ -751,15 +831,21 @@ pip install -r requirements.txt
       t.tabIndex = k === i ? 0 : -1;
     });
     caps.forEach(function (c) { c.hidden = c.getAttribute('data-for') !== slides[i].id; });
-    stage.classList.toggle('is-video', !!slides[i].querySelector('video'));
-    /* The frame changes height between the video slides and the explorer, so let
-       the explorer's plot refit to its new size once it is shown. */
-    var f = slides[i].querySelector('iframe');
+    stage.classList.toggle('is-space', slides[i].id === 'slide-space');
+    /* The explorer's card changes height as it comes forward or steps back, so
+       let its plot refit once the move has finished. */
+    var f = box.querySelector('iframe');
     if (f) {
-      try { f.contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
+      setTimeout(function () {
+        try { f.contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
+      }, 650);
     }
     cur = i;
   }
+
+  slides.forEach(function (s, k) {
+    s.querySelector('.slide-cover').addEventListener('click', function () { show(k); });
+  });
 
   box.querySelector('.car-prev').addEventListener('click', function () { show(cur - 1); });
   box.querySelector('.car-next').addEventListener('click', function () { show(cur + 1); });
